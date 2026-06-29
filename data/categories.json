@@ -1,0 +1,62 @@
+[
+  {
+    "id": "road",
+    "label": "Road",
+    "severityDefault": 3,
+    "team": "Road maintenance"
+  },
+  {
+    "id": "streetlight",
+    "label": "Streetlight",
+    "severityDefault": 3,
+    "team": "Electrical maintenance"
+  },
+  {
+    "id": "garbage",
+    "label": "Garbage",
+    "severityDefault": 2,
+    "team": "Sanitation"
+  },
+  {
+    "id": "water",
+    "label": "Water",
+    "severityDefault": 3,
+    "team": "Water works"
+  },
+  {
+    "id": "safety",
+    "label": "Safety",
+    "severityDefault": 4,
+    "team": "Community safety"
+  },
+  {
+    "id": "animal",
+    "label": "Animal",
+    "severityDefault": 3,
+    "team": "Animal welfare"
+  },
+  {
+    "id": "public_transport",
+    "label": "Public Transport",
+    "severityDefault": 2,
+    "team": "Transport support"
+  },
+  {
+    "id": "lost_found",
+    "label": "Lost and Found",
+    "severityDefault": 1,
+    "team": "Community volunteers"
+  },
+  {
+    "id": "noise",
+    "label": "Noise",
+    "severityDefault": 2,
+    "team": "Local mediation"
+  },
+  {
+    "id": "other",
+    "label": "Other",
+    "severityDefault": 2,
+    "team": "Community admin"
+  }
+]
