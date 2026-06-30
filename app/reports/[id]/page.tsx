@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getReportsRepository } from "@/lib/repositories/reports-repository";
-import { civicPulseSafetyDisclaimer, formatDate, getPriorityExplanation, getStatusProgress, safetyLabel } from "@/lib/utils";
+import { civicPulseSafetyDisclaimer, formatDate, getPriorityExplanation, getStatusProgress, safetyLabel, triageModeLabel } from "@/lib/utils";
 
 type ReportDetailsPageProps = {
   params: Promise<{
@@ -138,10 +138,14 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
 
           <Card>
             <CardHeader>
-              <CardTitle>Triage result</CardTitle>
+              <CardTitle>AI triage</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Triage engine</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{triageModeLabel(report.triageMode ?? report.triage.triageMode)}</p>
+                </div>
                 <div className="rounded-md bg-slate-50 p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</p>
                   <p className="mt-1 text-sm font-semibold text-slate-950">{report.triage.category}</p>

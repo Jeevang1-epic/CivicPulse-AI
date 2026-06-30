@@ -3,7 +3,7 @@ import { Card } from "@/components/Card";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { CivicReport } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, triageModeLabel } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 type ReportCardProps = {
@@ -43,6 +43,9 @@ export function ReportCard({ children, report }: ReportCardProps) {
           </div>
           <div>
             <span className="font-medium text-slate-700">Updated:</span> {formatDate(report.updatedAt)}
+          </div>
+          <div>
+            <span className="font-medium text-slate-700">Triage:</span> {triageModeLabel(report.triageMode ?? report.triage.triageMode)}
           </div>
         </div>
         <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-600">

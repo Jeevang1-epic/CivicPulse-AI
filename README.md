@@ -16,10 +16,11 @@ This repository now contains the controlled bootstrap of the app in the same roo
 - App-facing demo data for streetlight, garbage, water leakage, road damage, and electrical safety reports
 - Seed data loader that preserves the original `data/sample_reports.json` context file
 - Process-local demo repository with report creation, detail loading, board updates, and support/upvote
+- Server-only Gemini AI triage with structured JSON validation
 - Deterministic fallback triage that structures category, severity, safety level, action guidance, and review flags
 - Cloud Run-friendly `npm start` script that reads `PORT`
 
-Gemini and Firestore are intentionally not implemented yet in this bootstrap. Later work must keep Gemini server-side only and use local fallback when Firestore is not configured.
+Firestore is intentionally not implemented yet. Gemini is optional and server-side only; when `GEMINI_API_KEY` is missing or Gemini fails, report submission automatically uses the deterministic local fallback.
 
 ## Local setup
 
@@ -29,6 +30,15 @@ npm run dev
 ```
 
 Open `http://localhost:3000`.
+
+Run without Gemini by leaving `.env.local` absent or `GEMINI_API_KEY` blank. To test Gemini mode locally, create `.env.local` with:
+
+```bash
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=
+```
+
+`GEMINI_MODEL` is optional; when blank, the server uses a fast default Gemini model. Never prefix Gemini secrets with `NEXT_PUBLIC_`.
 
 ## Validation
 
@@ -53,8 +63,7 @@ Every implementation step should finish by running these commands when the scrip
 ## Safety and integrity
 
 - This demo does not send reports to real authorities.
-- CivicPulse AI is not an emergency service.
-- For immediate danger, users should contact local emergency services.
+- CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.
 - No Gemini API keys or other secrets should be exposed in frontend code.
 - No fake government or official integration claims should be made.
 

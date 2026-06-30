@@ -9,7 +9,7 @@ import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { validateCreateReportPayload } from "@/lib/report-validation";
 import type { CategoryDefinition, CivicCategory, CivicReport, CreateReportInput, SafetyLevel } from "@/lib/types";
-import { civicPulseSafetyDisclaimer } from "@/lib/utils";
+import { civicPulseSafetyDisclaimer, safetyLabel, triageModeLabel } from "@/lib/utils";
 
 type ReportFormProps = {
   categories: CategoryDefinition[];
@@ -212,6 +212,34 @@ export function ReportForm({ categories }: ReportFormProps) {
                 {civicPulseSafetyDisclaimer}
               </div>
             ) : null}
+            <div className="mt-5 rounded-md border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">AI triage preview</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{triageModeLabel(createdReport.triageMode ?? createdReport.triage.triageMode)}</p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                  {createdReport.needsHumanReview ? "Human review flagged" : "No immediate review flag"}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{createdReport.category}</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Severity</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{createdReport.severity}</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Safety</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{safetyLabel(createdReport.safetyLevel)}</p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                <span className="font-semibold text-slate-800">Recommended action:</span> {createdReport.recommendedAction}
+              </p>
+            </div>
             <div className="mt-5">
               <ReportCard report={createdReport} />
             </div>
