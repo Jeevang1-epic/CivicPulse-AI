@@ -14,9 +14,11 @@ export type CivicCategory =
 
 export type SafetyLevel = "low" | "medium" | "urgent" | "critical";
 
+export type SeverityScore = 1 | 2 | 3 | 4 | 5;
+
 export type ActivityEvent = {
   id: string;
-  type: "created" | "status_changed" | "supported" | "help_offered" | "comment";
+  type: "created" | "triaged" | "status_changed" | "supported" | "help_offered" | "comment";
   message: string;
   actorRole: "citizen" | "volunteer" | "admin" | "system";
   createdAt: string;
@@ -26,7 +28,7 @@ export type TriageResult = {
   title: string;
   cleanedSummary: string;
   category: CivicCategory;
-  severity: 1 | 2 | 3 | 4 | 5;
+  severity: SeverityScore;
   safetyLevel: SafetyLevel;
   duplicateKey: string;
   responsibleTeam: string;
@@ -43,7 +45,7 @@ export type CivicReport = {
   description: string;
   cleanedSummary: string;
   category: CivicCategory;
-  severity: number;
+  severity: SeverityScore;
   safetyLevel: SafetyLevel;
   locationText: string;
   lat?: number;
@@ -58,6 +60,7 @@ export type CivicReport = {
   needsHumanReview: boolean;
   insufficientInfo: boolean;
   safetyDisclaimerRequired: boolean;
+  triage: TriageResult;
   createdAt: string;
   updatedAt: string;
   activity: ActivityEvent[];
@@ -73,6 +76,21 @@ export type CategoryDefinition = {
 export type ReportMetrics = {
   total: number;
   open: number;
+  assigned: number;
   urgent: number;
+  critical: number;
   resolved: number;
+};
+
+export type CreateReportInput = {
+  description: string;
+  locationText: string;
+  categoryHint?: CivicCategory;
+  urgencyHint?: SafetyLevel;
+};
+
+export type ReportFilters = {
+  status?: ReportStatus;
+  category?: CivicCategory;
+  safetyLevel?: SafetyLevel;
 };

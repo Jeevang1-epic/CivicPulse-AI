@@ -13,7 +13,8 @@ This repository now contains the controlled bootstrap of the app in the same roo
 - Tailwind CSS styling
 - Mobile-first landing, report, board, dashboard, and report detail routes
 - Shared civic report types
-- Seed data loader from `data/sample_reports.json`
+- App-facing demo data for streetlight, garbage, water leakage, road damage, and electrical safety reports
+- Seed data loader that preserves the original `data/sample_reports.json` context file
 - Placeholder repository and triage service interfaces for future Firestore and Gemini work
 - Cloud Run-friendly `npm start` script that reads `PORT`
 
@@ -44,7 +45,9 @@ Every implementation step should finish by running these commands when the scrip
 - `/report` - placeholder citizen report surface
 - `/board` - public issue board using seed data
 - `/dashboard` - admin dashboard using seed metrics
-- `/reports/demo-1` - report details page using seed data
+- `/reports/demo-1` - streetlight report details
+- `/reports/demo-5` - critical safety report details
+- `/reports/not-real` - polished missing-report fallback
 
 ## Safety and integrity
 

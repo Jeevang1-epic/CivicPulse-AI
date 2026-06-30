@@ -1,9 +1,8 @@
 import { spawn } from "node:child_process";
 
 const port = process.env.PORT || "3000";
-const command = process.platform === "win32" ? "node_modules\\.bin\\next.cmd" : "node_modules/.bin/next";
 
-const child = spawn(command, ["start", "-p", port], {
+const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", port], {
   stdio: "inherit"
 });
 
