@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-
+import { jsonNoStore } from "@/lib/api-response";
 import { getReportsRepository } from "@/lib/repositories/reports-repository";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export const runtime = "nodejs";
 
 type RouteContext = {
@@ -13,10 +13,10 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const report = await getReportsRepository().getReportById(id);
+  const reportId = id.trim();
 
-  if (!report) {
-    return NextResponse.json(
+  if (!reportId) {
+    return jsonNoStore(
       {
         error: {
           code: "REPORT_NOT_FOUND",
@@ -27,5 +27,19 @@ export async function GET(_request: Request, context: RouteContext) {
     );
   }
 
-  return NextResponse.json({ report });
+  const report = await getReportsRepository().getReportById(reportId);
+
+  if (!report) {
+    return jsonNoStore(
+      {
+        error: {
+          code: "REPORT_NOT_FOUND",
+          message: "That report was not found in the local demo repository."
+        }
+      },
+      { status: 404 }
+    );
+  }
+
+  return jsonNoStore({ report });
 }

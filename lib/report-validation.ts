@@ -31,12 +31,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function optionalString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
 }
 
-function countWords(value: string) {
-  return value.split(/\s+/).filter(Boolean).length;
+function optionalString(value: unknown) {
+  return typeof value === "string" ? normalizeWhitespace(value) : "";
+}
+
+function hasEnoughReportSignal(value: string) {
+  const words = value.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+  const uniqueWords = new Set(words);
+  const lettersAndNumbers = value.replace(/[^a-z0-9]/gi, "");
+
+  return value.length >= 12 && words.length >= 3 && uniqueWords.size >= 2 && lettersAndNumbers.length >= 6;
 }
 
 export function isCivicCategory(value: unknown): value is CivicCategory {
@@ -67,7 +75,7 @@ export function validateCreateReportPayload(payload: unknown): ValidationResult 
 
   if (!description) {
     errors.description = "Describe the issue before submitting.";
-  } else if (description.length < 20 || countWords(description) < 4) {
+  } else if (!hasEnoughReportSignal(description)) {
     errors.description = "Add a little more detail so the report can be triaged.";
   } else if (description.length > 1600) {
     errors.description = "Keep the description under 1600 characters.";

@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getReportsRepository } from "@/lib/repositories/reports-repository";
-import { formatDate, getPriorityExplanation, getStatusProgress, safetyLabel } from "@/lib/utils";
+import { civicPulseSafetyDisclaimer, formatDate, getPriorityExplanation, getStatusProgress, safetyLabel } from "@/lib/utils";
 
 type ReportDetailsPageProps = {
   params: Promise<{
@@ -13,6 +13,7 @@ type ReportDetailsPageProps = {
 };
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ReportDetailsPage({ params }: ReportDetailsPageProps) {
   const { id } = await params;
@@ -129,8 +130,7 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
               </div>
               {report.safetyDisclaimerRequired ? (
                 <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-900">
-                  CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or
-                  responsible authorities directly.
+                  {civicPulseSafetyDisclaimer}
                 </div>
               ) : null}
             </CardContent>

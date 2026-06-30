@@ -14,6 +14,7 @@ export class LocalReportsRepository implements ReportsRepository {
   private reports: CivicReport[];
 
   constructor(seedReports: CivicReport[] = sampleReports) {
+    // Seed once per process; Firestore will replace this local store in the cloud-backed phase.
     this.reports = [...seedReports];
   }
 

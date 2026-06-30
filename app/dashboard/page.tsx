@@ -8,6 +8,7 @@ import { getCategoryCountsForReports, getDashboardBriefForReports, getSafetyLeve
 import { getReportMetrics, getStatusProgress, safetyLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function DashboardPage() {
   const reports = await getReportsRepository().listReports();

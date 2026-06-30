@@ -1,5 +1,8 @@
 import type { CivicReport, ReportMetrics, ReportStatus, SafetyLevel } from "@/lib/types";
 
+export const civicPulseSafetyDisclaimer =
+  "CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.";
+
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }

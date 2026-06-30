@@ -5,6 +5,7 @@ import { civicCategories, getCategoryCountsForReports } from "@/lib/sample-data"
 import { getReportMetrics } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function BoardPage() {
   const reports = await getReportsRepository().listReports();
