@@ -64,6 +64,19 @@ Every implementation step should finish by running these commands when the scrip
 - `/reports/demo-5` - critical safety report details
 - `/reports/not-real` - polished missing-report fallback
 
+## Demo flow
+
+1. Open `/` and use the calls to action to reach the reporting flow, public board, and dashboard.
+2. Submit an issue on `/report`; the server triages it with Gemini when configured or deterministic fallback when not.
+3. Confirm the new report appears on `/board`, open its detail page, and use support/upvote to show community signal.
+4. Open `/dashboard` to review KPIs, priority queue, status workflow controls, and the community brief.
+
+## Current limitations
+
+- Local demo storage is process-memory only until Firestore is configured.
+- Dashboard access is a demo admin role surface, not production authentication.
+- CivicPulse AI does not submit reports to real authorities or official systems.
+
 ## Safety and integrity
 
 - This demo does not send reports to real authorities.
