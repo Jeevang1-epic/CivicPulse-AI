@@ -55,6 +55,10 @@ export function ReportBoard({ categories, initialReports }: ReportBoardProps) {
   }, [category, reports, sortMode, status]);
 
   async function supportReport(id: string) {
+    if (supportingId) {
+      return;
+    }
+
     setSupportingId(id);
     setError(null);
 

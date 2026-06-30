@@ -9,6 +9,7 @@ import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { validateCreateReportPayload } from "@/lib/report-validation";
 import type { CategoryDefinition, CivicCategory, CivicReport, CreateReportInput, SafetyLevel } from "@/lib/types";
+import { civicPulseSafetyDisclaimer } from "@/lib/utils";
 
 type ReportFormProps = {
   categories: CategoryDefinition[];
@@ -23,9 +24,6 @@ type ReportResponse = {
     fields?: FieldErrors;
   };
 };
-
-const safetyDisclaimer =
-  "CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.";
 
 const inputClass =
   "rounded-md border border-slate-200 bg-white px-3 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-civic-500 focus:ring-4 focus:ring-civic-100";
@@ -42,6 +40,11 @@ export function ReportForm({ categories }: ReportFormProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
     setErrors({});
     setCreatedReport(null);
 
@@ -96,11 +99,12 @@ export function ReportForm({ categories }: ReportFormProps) {
           <CardTitle>Issue details</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-5" onSubmit={handleSubmit}>
+          <form aria-busy={isSubmitting} className="grid gap-5" onSubmit={handleSubmit}>
             <label className="grid gap-2">
               <span className="text-sm font-medium text-slate-700">What did you notice?</span>
               <textarea
                 className={`${inputClass} min-h-36 resize-y`}
+                disabled={isSubmitting}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Example: Large electric wire hanging near bus stop after rain."
                 value={description}
@@ -112,6 +116,7 @@ export function ReportForm({ categories }: ReportFormProps) {
               <span className="text-sm font-medium text-slate-700">Approximate location</span>
               <input
                 className={inputClass}
+                disabled={isSubmitting}
                 onChange={(event) => setLocationText(event.target.value)}
                 placeholder="Example: Bus stop near Market Road"
                 value={locationText}
@@ -124,6 +129,7 @@ export function ReportForm({ categories }: ReportFormProps) {
                 <span className="text-sm font-medium text-slate-700">Category hint</span>
                 <select
                   className={inputClass}
+                  disabled={isSubmitting}
                   onChange={(event) => setCategoryHint(event.target.value as CivicCategory | "")}
                   value={categoryHint}
                 >
@@ -141,6 +147,7 @@ export function ReportForm({ categories }: ReportFormProps) {
                 <span className="text-sm font-medium text-slate-700">Urgency hint</span>
                 <select
                   className={inputClass}
+                  disabled={isSubmitting}
                   onChange={(event) => setUrgencyHint(event.target.value as SafetyLevel | "")}
                   value={urgencyHint}
                 >
@@ -158,6 +165,7 @@ export function ReportForm({ categories }: ReportFormProps) {
               <span className="text-sm font-medium text-slate-700">Optional contact or reference</span>
               <input
                 className={inputClass}
+                disabled={isSubmitting}
                 onChange={(event) => setContactReference(event.target.value)}
                 placeholder="Optional: apartment block, shop name, or contact reference for demo follow-up"
                 value={contactReference}
@@ -169,7 +177,7 @@ export function ReportForm({ categories }: ReportFormProps) {
             </label>
 
             <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              {safetyDisclaimer}
+              {civicPulseSafetyDisclaimer}
             </div>
 
             {errors.form ? (
@@ -201,7 +209,7 @@ export function ReportForm({ categories }: ReportFormProps) {
             <p className="text-sm leading-6 text-slate-700">{createdReport.citizenReply}</p>
             {createdReport.safetyDisclaimerRequired ? (
               <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-900">
-                {safetyDisclaimer}
+                {civicPulseSafetyDisclaimer}
               </div>
             ) : null}
             <div className="mt-5">

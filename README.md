@@ -11,11 +11,12 @@ This repository now contains the controlled bootstrap of the app in the same roo
 
 - Next.js App Router with TypeScript
 - Tailwind CSS styling
-- Mobile-first landing, report, board, dashboard, and report detail routes
+- Mobile-first landing, report submission, board, dashboard, and report detail routes
 - Shared civic report types
 - App-facing demo data for streetlight, garbage, water leakage, road damage, and electrical safety reports
 - Seed data loader that preserves the original `data/sample_reports.json` context file
-- Placeholder repository and triage service interfaces for future Firestore and Gemini work
+- Process-local demo repository with report creation, detail loading, board updates, and support/upvote
+- Deterministic fallback triage that structures category, severity, safety level, action guidance, and review flags
 - Cloud Run-friendly `npm start` script that reads `PORT`
 
 Gemini and Firestore are intentionally not implemented yet in this bootstrap. Later work must keep Gemini server-side only and use local fallback when Firestore is not configured.
@@ -42,9 +43,9 @@ Every implementation step should finish by running these commands when the scrip
 ## Routes
 
 - `/` - landing page and product explanation
-- `/report` - placeholder citizen report surface
-- `/board` - public issue board using seed data
-- `/dashboard` - admin dashboard using seed metrics
+- `/report` - citizen report submission flow backed by the local demo repository
+- `/board` - public issue board using seed data plus submissions from the current server process
+- `/dashboard` - admin dashboard using live local report metrics
 - `/reports/demo-1` - streetlight report details
 - `/reports/demo-5` - critical safety report details
 - `/reports/not-real` - polished missing-report fallback
