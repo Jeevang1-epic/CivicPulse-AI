@@ -1,7 +1,7 @@
 import { jsonNoStore } from "@/lib/api-response";
 import { getReportsRepository } from "@/lib/repositories/reports-repository";
 import { validateCreateReportPayload } from "@/lib/report-validation";
-import { createTriageService } from "@/lib/services/triage-service";
+import { createTriageService } from "@/lib/services/gemini-triage-service";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

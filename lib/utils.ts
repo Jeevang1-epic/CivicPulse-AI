@@ -1,4 +1,4 @@
-import type { CivicReport, ReportMetrics, ReportStatus, SafetyLevel } from "@/lib/types";
+import type { CivicReport, ReportMetrics, ReportStatus, SafetyLevel, TriageMode } from "@/lib/types";
 
 export const civicPulseSafetyDisclaimer =
   "CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.";
@@ -36,6 +36,17 @@ export function safetyLabel(level: SafetyLevel) {
   };
 
   return labels[level];
+}
+
+export function triageModeLabel(mode?: TriageMode) {
+  const labels: Record<TriageMode, string> = {
+    gemini: "Gemini AI triage",
+    fallback_missing_key: "Local fallback triage",
+    fallback_error: "Local fallback after AI error",
+    fallback_invalid_output: "Local fallback after AI validation"
+  };
+
+  return mode ? labels[mode] : "Seed triage";
 }
 
 export function getReportMetrics(reports: CivicReport[]): ReportMetrics {

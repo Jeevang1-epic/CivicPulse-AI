@@ -40,7 +40,7 @@ export class LocalReportsRepository implements ReportsRepository {
         id: `local-triaged-${now}`,
         type: "triaged",
         actorRole: "system",
-        message: `Prepared local triage as ${triage.category} with severity ${triage.severity}.`,
+        message: `Prepared ${triage.triageMode.replaceAll("_", " ")} triage as ${triage.category} with severity ${triage.severity}.`,
         createdAt: now
       }
     ];
@@ -71,6 +71,7 @@ export class LocalReportsRepository implements ReportsRepository {
       citizenReply: triage.citizenReply,
       supportCount: 1,
       helpOffers: 0,
+      triageMode: triage.triageMode,
       contactReferenceProvided: Boolean(input.contactReference),
       needsHumanReview: triage.needsHumanReview,
       insufficientInfo: triage.insufficientInfo,

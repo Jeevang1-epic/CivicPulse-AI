@@ -1,4 +1,4 @@
-import type { CivicCategory, CreateReportInput, SafetyLevel, SeverityScore, TriageResult } from "@/lib/types";
+import type { CivicCategory, CreateReportInput, SafetyLevel, SeverityScore, TriageMode, TriageResult } from "@/lib/types";
 import { civicPulseSafetyDisclaimer } from "@/lib/utils";
 
 export type TriageInput = CreateReportInput;
@@ -94,6 +94,8 @@ function hasVagueLanguage(description: string) {
 }
 
 export class PlaceholderTriageService implements TriageService {
+  constructor(private readonly triageMode: TriageMode = "fallback_missing_key") {}
+
   async triageReport(input: TriageInput): Promise<TriageResult> {
     const rule = findRule(input);
     const description = input.description.trim();
@@ -108,6 +110,7 @@ export class PlaceholderTriageService implements TriageService {
     const isCritical = safetyLevel === "critical" || severity === 5;
 
     return {
+      triageMode: this.triageMode,
       title: createTitle(category, input.description, input.locationText),
       cleanedSummary: input.description.trim() || "The report needs more details before it can be prioritized.",
       category,

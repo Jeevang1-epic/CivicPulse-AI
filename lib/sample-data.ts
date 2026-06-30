@@ -69,6 +69,7 @@ const additionalSeedReports: SeedReport[] = [
 
 function toTriageResult(report: SeedReport): TriageResult {
   return {
+    triageMode: "fallback_missing_key",
     title: report.title,
     cleanedSummary: report.cleanedSummary,
     category: report.category,

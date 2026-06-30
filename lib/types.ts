@@ -16,6 +16,8 @@ export type SafetyLevel = "low" | "medium" | "urgent" | "critical";
 
 export type SeverityScore = 1 | 2 | 3 | 4 | 5;
 
+export type TriageMode = "gemini" | "fallback_missing_key" | "fallback_error" | "fallback_invalid_output";
+
 export type ActivityEvent = {
   id: string;
   type: "created" | "triaged" | "status_changed" | "supported" | "help_offered" | "comment";
@@ -25,6 +27,7 @@ export type ActivityEvent = {
 };
 
 export type TriageResult = {
+  triageMode: TriageMode;
   title: string;
   cleanedSummary: string;
   category: CivicCategory;
@@ -57,6 +60,7 @@ export type CivicReport = {
   citizenReply: string;
   supportCount: number;
   helpOffers: number;
+  triageMode?: TriageMode;
   contactReferenceProvided: boolean;
   needsHumanReview: boolean;
   insufficientInfo: boolean;
