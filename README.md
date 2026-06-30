@@ -18,9 +18,12 @@ This repository now contains the controlled bootstrap of the app in the same roo
 - Process-local demo repository with report creation, detail loading, board updates, and support/upvote
 - Server-only Gemini AI triage with structured JSON validation
 - Deterministic fallback triage that structures category, severity, safety level, action guidance, and review flags
+- Dashboard workflow controls for open, in review, assigned, and resolved reports
+- Server-side community brief API with Gemini support and deterministic fallback
 - Cloud Run-friendly `npm start` script that reads `PORT`
 
 Firestore is intentionally not implemented yet. Gemini is optional and server-side only; when `GEMINI_API_KEY` is missing or Gemini fails, report submission automatically uses the deterministic local fallback.
+The dashboard community brief follows the same pattern and falls back safely without cloud configuration.
 
 ## Local setup
 
@@ -56,7 +59,7 @@ Every implementation step should finish by running these commands when the scrip
 - `/` - landing page and product explanation
 - `/report` - citizen report submission flow backed by the local demo repository
 - `/board` - public issue board using seed data plus submissions from the current server process
-- `/dashboard` - admin dashboard using live local report metrics
+- `/dashboard` - demo operations dashboard with live metrics, filters, status updates, priority queue, and community brief
 - `/reports/demo-1` - streetlight report details
 - `/reports/demo-5` - critical safety report details
 - `/reports/not-real` - polished missing-report fallback
