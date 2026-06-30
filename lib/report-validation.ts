@@ -1,4 +1,4 @@
-import type { CivicCategory, CreateReportInput, SafetyLevel } from "@/lib/types";
+import type { CivicCategory, CreateReportInput, ReportStatus, SafetyLevel } from "@/lib/types";
 
 type FieldErrors = Partial<Record<keyof CreateReportInput, string>>;
 
@@ -27,6 +27,8 @@ const civicCategories: CivicCategory[] = [
 
 const safetyLevels: SafetyLevel[] = ["low", "medium", "urgent", "critical"];
 
+const reportStatuses: ReportStatus[] = ["open", "in_review", "assigned", "resolved"];
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -53,6 +55,10 @@ export function isCivicCategory(value: unknown): value is CivicCategory {
 
 export function isSafetyLevel(value: unknown): value is SafetyLevel {
   return typeof value === "string" && safetyLevels.includes(value as SafetyLevel);
+}
+
+export function isReportStatus(value: unknown): value is ReportStatus {
+  return typeof value === "string" && reportStatuses.includes(value as ReportStatus);
 }
 
 export function validateCreateReportPayload(payload: unknown): ValidationResult {

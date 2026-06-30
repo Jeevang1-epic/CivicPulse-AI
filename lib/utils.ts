@@ -54,6 +54,7 @@ export function getReportMetrics(reports: CivicReport[]): ReportMetrics {
   return {
     total: reports.length,
     open: reports.filter((report) => report.status === "open").length,
+    inReview: reports.filter((report) => report.status === "in_review").length,
     assigned: reports.filter((report) => report.status === "assigned").length,
     urgent: reports.filter((report) => report.safetyLevel === "urgent" || report.safetyLevel === "critical").length,
     critical: reports.filter((report) => report.safetyLevel === "critical").length,

@@ -1,11 +1,27 @@
-import { getReportById, sampleReports } from "@/lib/sample-data";
-import type { ActivityEvent, CivicReport, CreateReportInput, ReportStatus, TriageResult } from "@/lib/types";
+import { getDashboardSummaryForReports, getFallbackCommunityBrief } from "@/lib/dashboard-intelligence";
+import { civicCategories, getReportById, sampleReports } from "@/lib/sample-data";
+import type {
+  ActivityEvent,
+  ActivityEventInput,
+  CivicReport,
+  CommunityBrief,
+  CreateReportInput,
+  DashboardSummary,
+  ReportStatus,
+  TriageResult
+} from "@/lib/types";
+import { statusLabel } from "@/lib/utils";
 
 export interface ReportsRepository {
   listReports(): Promise<CivicReport[]>;
   getReportById(id: string): Promise<CivicReport | null>;
   createReport(input: CreateReportInput, triage: TriageResult): Promise<CivicReport>;
+  updateReportStatus(id: string, status: ReportStatus): Promise<CivicReport>;
   updateStatus(id: string, status: ReportStatus): Promise<CivicReport>;
+  assignResponsibleTeam(id: string, team: string): Promise<CivicReport>;
+  addActivityEvent(id: string, event: ActivityEventInput): Promise<CivicReport>;
+  getDashboardSummary(): Promise<DashboardSummary>;
+  getCommunityInsights(): Promise<CommunityBrief>;
   supportReport(id: string): Promise<CivicReport>;
   offerHelp(id: string): Promise<CivicReport>;
 }
@@ -86,32 +102,84 @@ export class LocalReportsRepository implements ReportsRepository {
     return report;
   }
 
-  async updateStatus(id: string, status: ReportStatus) {
-    const reportIndex = this.reports.findIndex((report) => report.id === id);
-
-    if (reportIndex === -1) {
-      throw new Error("Report not found");
-    }
-
+  async updateReportStatus(id: string, status: ReportStatus) {
     const now = new Date().toISOString();
-    const updatedReport: CivicReport = {
-      ...this.reports[reportIndex],
+
+    return this.updateReport(id, (report) => ({
+      ...report,
       status,
       updatedAt: now,
       activity: [
-        ...this.reports[reportIndex].activity,
+        ...report.activity,
         {
           id: `${id}-status-${now}`,
           type: "status_changed",
           actorRole: "admin",
-          message: `Status changed to ${status.replace("_", " ")}.`,
+          message: `Status changed to ${statusLabel(status)}.`,
           createdAt: now
         }
       ]
+    }));
+  }
+
+  async updateStatus(id: string, status: ReportStatus) {
+    return this.updateReportStatus(id, status);
+  }
+
+  async assignResponsibleTeam(id: string, team: string) {
+    const normalizedTeam = team.replace(/\s+/g, " ").trim();
+
+    if (!normalizedTeam) {
+      throw new Error("Responsible team is required");
+    }
+
+    const now = new Date().toISOString();
+
+    return this.updateReport(id, (report) => ({
+      ...report,
+      responsibleTeam: normalizedTeam,
+      triage: {
+        ...report.triage,
+        responsibleTeam: normalizedTeam
+      },
+      updatedAt: now,
+      activity: [
+        ...report.activity,
+        {
+          id: `${id}-team-${now}`,
+          type: "comment",
+          actorRole: "admin",
+          message: `Responsible team set to ${normalizedTeam}.`,
+          createdAt: now
+        }
+      ]
+    }));
+  }
+
+  async addActivityEvent(id: string, event: ActivityEventInput) {
+    const now = new Date().toISOString();
+    const createdAt = event.createdAt ?? now;
+    const activityEvent: ActivityEvent = {
+      id: event.id ?? `${id}-${event.type}-${crypto.randomUUID()}`,
+      type: event.type,
+      actorRole: event.actorRole,
+      message: event.message,
+      createdAt
     };
 
-    this.reports[reportIndex] = updatedReport;
-    return updatedReport;
+    return this.updateReport(id, (report) => ({
+      ...report,
+      updatedAt: now,
+      activity: [...report.activity, activityEvent]
+    }));
+  }
+
+  async getDashboardSummary() {
+    return getDashboardSummaryForReports(this.reports, civicCategories);
+  }
+
+  async getCommunityInsights() {
+    return getFallbackCommunityBrief(this.reports);
   }
 
   async supportReport(id: string) {
@@ -123,19 +191,14 @@ export class LocalReportsRepository implements ReportsRepository {
   }
 
   private incrementCounter(id: string, key: "supportCount" | "helpOffers") {
-    const reportIndex = this.reports.findIndex((report) => report.id === id);
-
-    if (reportIndex === -1) {
-      throw new Error("Report not found");
-    }
-
     const now = new Date().toISOString();
-    const updatedReport: CivicReport = {
-      ...this.reports[reportIndex],
-      [key]: this.reports[reportIndex][key] + 1,
+
+    return this.updateReport(id, (report) => ({
+      ...report,
+      [key]: report[key] + 1,
       updatedAt: now,
       activity: [
-        ...this.reports[reportIndex].activity,
+        ...report.activity,
         {
           id: `${id}-${key}-${now}`,
           type: key === "supportCount" ? "supported" : "help_offered",
@@ -144,8 +207,17 @@ export class LocalReportsRepository implements ReportsRepository {
           createdAt: now
         }
       ]
-    };
+    }));
+  }
 
+  private updateReport(id: string, updater: (report: CivicReport) => CivicReport) {
+    const reportIndex = this.reports.findIndex((report) => report.id === id);
+
+    if (reportIndex === -1) {
+      throw new Error("Report not found");
+    }
+
+    const updatedReport = updater(this.reports[reportIndex]);
     this.reports[reportIndex] = updatedReport;
     return updatedReport;
   }

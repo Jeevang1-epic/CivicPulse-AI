@@ -26,6 +26,11 @@ export type ActivityEvent = {
   createdAt: string;
 };
 
+export type ActivityEventInput = Omit<ActivityEvent, "id" | "createdAt"> & {
+  id?: string;
+  createdAt?: string;
+};
+
 export type TriageResult = {
   triageMode: TriageMode;
   title: string;
@@ -81,6 +86,7 @@ export type CategoryDefinition = {
 export type ReportMetrics = {
   total: number;
   open: number;
+  inReview: number;
   assigned: number;
   urgent: number;
   critical: number;
@@ -99,4 +105,42 @@ export type ReportFilters = {
   status?: ReportStatus;
   category?: CivicCategory;
   safetyLevel?: SafetyLevel;
+};
+
+export type DashboardCategoryStat = {
+  category: CivicCategory;
+  count: number;
+  team?: string;
+};
+
+export type DashboardActivityItem = ActivityEvent & {
+  reportId: string;
+  reportTitle: string;
+  reportStatus: ReportStatus;
+  reportCategory: CivicCategory;
+};
+
+export type DashboardSummary = {
+  totalReports: number;
+  openReports: number;
+  inReviewReports: number;
+  assignedReports: number;
+  resolvedReports: number;
+  urgentReports: number;
+  criticalReports: number;
+  averageSeverity: number;
+  topCategories: DashboardCategoryStat[];
+  recentActivity: DashboardActivityItem[];
+  priorityQueue: CivicReport[];
+};
+
+export type CommunityBrief = {
+  mode: TriageMode;
+  headline: string;
+  topCategory: CivicCategory;
+  urgentRiskSummary: string;
+  focusArea: string;
+  recommendedNextStep: string;
+  citizenSummary: string;
+  generatedAt: string;
 };
