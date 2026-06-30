@@ -40,10 +40,11 @@ export function safetyLabel(level: SafetyLevel) {
 
 export function triageModeLabel(mode?: TriageMode) {
   const labels: Record<TriageMode, string> = {
-    gemini: "Gemini AI triage",
-    fallback_missing_key: "Local fallback triage",
-    fallback_error: "Local fallback after AI error",
-    fallback_invalid_output: "Local fallback after AI validation"
+    gemini: "Gemini AI",
+    fallback_missing_key: "Fallback missing key",
+    fallback_error: "Fallback error",
+    fallback_timeout: "Fallback timeout",
+    fallback_invalid_output: "Fallback invalid output"
   };
 
   return mode ? labels[mode] : "Seed triage";

@@ -31,7 +31,7 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-Run without Gemini by leaving `.env.local` absent or `GEMINI_API_KEY` blank. To test Gemini mode locally, create `.env.local` with:
+Run without Gemini by leaving `.env.local` absent or `GEMINI_API_KEY` blank. New reports should show `Fallback missing key` in the triage engine label. To test live Gemini mode locally, create `.env.local` with:
 
 ```bash
 GEMINI_API_KEY=your_key_here
@@ -39,6 +39,7 @@ GEMINI_MODEL=
 ```
 
 `GEMINI_MODEL` is optional; when blank, the server uses a fast default Gemini model. Never prefix Gemini secrets with `NEXT_PUBLIC_`.
+`.env.local` is ignored by git and must not be committed.
 
 ## Validation
 

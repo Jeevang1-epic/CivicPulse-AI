@@ -10,6 +10,13 @@ import { civicPulseSafetyDisclaimer } from "@/lib/utils";
 const defaultGeminiModel = "gemini-2.0-flash";
 const geminiTimeoutMs = 6500;
 
+class GeminiTriageTimeoutError extends Error {
+  constructor() {
+    super("Gemini triage timed out");
+    this.name = "GeminiTriageTimeoutError";
+  }
+}
+
 const civicCategories: CivicCategory[] = [
   "Road",
   "Streetlight",
@@ -223,7 +230,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
     return await Promise.race([
       promise,
       new Promise<T>((_resolve, reject) => {
-        timeout = setTimeout(() => reject(new Error("Gemini triage timed out")), timeoutMs);
+        timeout = setTimeout(() => reject(new GeminiTriageTimeoutError()), timeoutMs);
       })
     ]);
   } finally {
@@ -266,8 +273,13 @@ export class GeminiTriageService implements TriageService {
       }
 
       return triage;
-    } catch {
-      console.warn("[CivicPulse AI] Gemini triage failed or timed out; using deterministic fallback.");
+    } catch (error) {
+      if (error instanceof GeminiTriageTimeoutError) {
+        console.warn("[CivicPulse AI] Gemini triage timed out; using deterministic fallback.");
+        return this.runFallback(input, "fallback_timeout");
+      }
+
+      console.warn("[CivicPulse AI] Gemini triage failed; using deterministic fallback.");
       return this.runFallback(input, "fallback_error");
     }
   }

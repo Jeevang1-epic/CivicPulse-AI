@@ -16,7 +16,7 @@ export type SafetyLevel = "low" | "medium" | "urgent" | "critical";
 
 export type SeverityScore = 1 | 2 | 3 | 4 | 5;
 
-export type TriageMode = "gemini" | "fallback_missing_key" | "fallback_error" | "fallback_invalid_output";
+export type TriageMode = "gemini" | "fallback_missing_key" | "fallback_error" | "fallback_timeout" | "fallback_invalid_output";
 
 export type ActivityEvent = {
   id: string;
