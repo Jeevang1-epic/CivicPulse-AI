@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getReportById, sampleReports } from "@/lib/sample-data";
-import { formatDate, getStatusProgress } from "@/lib/utils";
+import { formatDate, getStatusProgress, safetyLabel } from "@/lib/utils";
 
 type ReportDetailsPageProps = {
   params: Promise<{
@@ -36,7 +36,7 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-civic-600">Report details</p>
@@ -50,11 +50,18 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
 
       <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
         <div className="grid gap-6">
-          <Card>
+          <Card className="shadow-soft">
             <CardHeader>
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status={report.status} />
-                <SeverityBadge safetyLevel={report.safetyLevel} severity={report.severity} />
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={report.status} />
+                  <SeverityBadge safetyLevel={report.safetyLevel} severity={report.severity} />
+                </div>
+                {report.needsHumanReview ? (
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-100">
+                    Human review required
+                  </span>
+                ) : null}
               </div>
             </CardHeader>
             <CardContent>
@@ -70,6 +77,10 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
                 <div>
                   <dt className="text-sm font-medium text-slate-500">Responsible team</dt>
                   <dd className="mt-1 font-semibold text-slate-950">{report.responsibleTeam}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-slate-500">Safety level</dt>
+                  <dd className="mt-1 font-semibold text-slate-950">{safetyLabel(report.safetyLevel)}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-slate-500">Duplicate group</dt>
@@ -96,6 +107,42 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
               <p className="text-sm leading-6 text-slate-600">{report.recommendedAction}</p>
               <div className="mt-4 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900">
                 {report.citizenReply}
+              </div>
+              {report.safetyDisclaimerRequired ? (
+                <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-900">
+                  CivicPulse AI is not an emergency service. If there is immediate danger, contact local emergency
+                  services.
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Triage result</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{report.triage.category}</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Severity</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">
+                    {report.triage.severity} - {safetyLabel(report.triage.safetyLevel)}
+                  </p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Duplicate key</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{report.triage.duplicateKey}</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Review flag</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">
+                    {report.triage.needsHumanReview ? "Needs human review" : "No immediate review flag"}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -124,14 +171,14 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
             </CardHeader>
             <CardContent>
               <ol className="grid gap-4 text-sm">
-                <li className="rounded-md border border-slate-200 p-3">
-                  <p className="font-semibold text-slate-950">Report created</p>
-                  <p className="mt-1 text-slate-500">{formatDate(report.createdAt)}</p>
-                </li>
-                <li className="rounded-md border border-slate-200 p-3">
-                  <p className="font-semibold text-slate-950">Latest status update</p>
-                  <p className="mt-1 text-slate-500">{formatDate(report.updatedAt)}</p>
-                </li>
+                {report.activity.map((event) => (
+                  <li className="rounded-md border border-slate-200 p-3" key={event.id}>
+                    <p className="font-semibold text-slate-950">{event.message}</p>
+                    <p className="mt-1 text-slate-500">
+                      {formatDate(event.createdAt)} by {event.actorRole}
+                    </p>
+                  </li>
+                ))}
               </ol>
             </CardContent>
           </Card>

@@ -2,7 +2,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { ReportCard } from "@/components/ReportCard";
 import { StatCard } from "@/components/StatCard";
-import { getPriorityReports, getSampleMetrics } from "@/lib/sample-data";
+import { getDashboardBrief, getPriorityReports, getSampleMetrics } from "@/lib/sample-data";
 
 const workflowSteps = [
   {
@@ -25,22 +25,24 @@ const workflowSteps = [
 
 export default function HomePage() {
   const metrics = getSampleMetrics();
-  const priorityReports = getPriorityReports(2);
+  const priorityReports = getPriorityReports(3);
+  const brief = getDashboardBrief();
 
   return (
     <div>
-      <section className="bg-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:py-20">
           <div className="flex flex-col justify-center">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-civic-600">
               Community Hero - Hyperlocal Problem Solver
             </p>
             <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-              Turn local problems into trackable community action.
+              Turn scattered local complaints into a civic action queue.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              CivicPulse AI helps neighborhoods and campuses convert scattered reports into a clean public board,
-              priority queue, and admin workflow. It is transparent civic coordination, not a fake official integration.
+              CivicPulse AI gives residents a simple way to report hyperlocal issues and gives community admins a
+              structured board for severity, status, action, and follow-up. It is transparent civic coordination, not
+              a fake official integration.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button href="/report">Report an issue</Button>
@@ -58,26 +60,29 @@ export default function HomePage() {
           </div>
           <Card className="bg-slate-950 p-5 text-white shadow-soft">
             <div className="rounded-md border border-white/10 bg-white/5 p-4">
-              <p className="text-sm font-medium text-slate-300">Today&apos;s priority signal</p>
-              <h2 className="mt-3 text-2xl font-semibold">Unsafe night visibility and slippery road reports are rising.</h2>
+              <p className="text-sm font-medium text-slate-300">Operations brief</p>
+              <h2 className="mt-3 text-2xl font-semibold">{brief.headline}</h2>
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                Seed data highlights urgent civic risks near a college gate and main road bus stop. The dashboard
-                keeps these reports visible for admin review.
+                {brief.summary}
               </p>
             </div>
             <div className="mt-5 grid grid-cols-3 gap-3">
               <div className="rounded-md bg-white/10 p-3">
                 <p className="text-2xl font-semibold">{metrics.total}</p>
-                <p className="mt-1 text-xs text-slate-300">Seed reports</p>
+                <p className="mt-1 text-xs text-slate-300">Demo reports</p>
               </div>
               <div className="rounded-md bg-white/10 p-3">
                 <p className="text-2xl font-semibold">{metrics.urgent}</p>
-                <p className="mt-1 text-xs text-slate-300">Urgent</p>
+                <p className="mt-1 text-xs text-slate-300">Priority</p>
               </div>
               <div className="rounded-md bg-white/10 p-3">
-                <p className="text-2xl font-semibold">{metrics.resolved}</p>
-                <p className="mt-1 text-xs text-slate-300">Resolved</p>
+                <p className="text-2xl font-semibold">{metrics.critical}</p>
+                <p className="mt-1 text-xs text-slate-300">Critical</p>
               </div>
+            </div>
+            <div className="mt-4 rounded-md border border-amber-300/20 bg-amber-300/10 p-3 text-sm leading-6 text-amber-50">
+              Critical demo reports show safety disclaimers and human-review language. CivicPulse AI does not replace
+              emergency services.
             </div>
           </Card>
         </div>
@@ -88,7 +93,7 @@ export default function HomePage() {
           <StatCard detail="Visible in the demo dataset" label="Total reports" value={metrics.total} />
           <StatCard detail="Awaiting first review" label="Open reports" value={metrics.open} />
           <StatCard detail="Urgent or critical safety level" label="Priority reports" value={metrics.urgent} />
-          <StatCard detail="Ready for final proof later" label="Resolved reports" value={metrics.resolved} />
+          <StatCard detail="Marked for action" label="Assigned reports" value={metrics.assigned} />
         </div>
       </section>
 

@@ -11,11 +11,18 @@ type ReportCardProps = {
 
 export function ReportCard({ report }: ReportCardProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden transition hover:-translate-y-0.5 hover:border-civic-100 hover:shadow-soft">
       <div className="p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={report.status} />
-          <SeverityBadge safetyLevel={report.safetyLevel} severity={report.severity} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={report.status} />
+            <SeverityBadge safetyLevel={report.safetyLevel} severity={report.severity} />
+          </div>
+          {report.needsHumanReview ? (
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-100">
+              Human review
+            </span>
+          ) : null}
         </div>
         <div className="mt-4">
           <p className="text-sm font-medium text-civic-700">{report.category}</p>
@@ -35,6 +42,9 @@ export function ReportCard({ report }: ReportCardProps) {
           <div>
             <span className="font-medium text-slate-700">Updated:</span> {formatDate(report.updatedAt)}
           </div>
+        </div>
+        <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+          <span className="font-medium text-slate-800">Next action:</span> {report.recommendedAction}
         </div>
       </div>
       <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
