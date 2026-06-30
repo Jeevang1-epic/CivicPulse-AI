@@ -86,8 +86,8 @@ export class PlaceholderTriageService implements TriageService {
     const rule = findRule(input);
     const insufficientInfo = input.description.trim().length < 20 || input.locationText.trim().length < 3;
     const category = rule?.category ?? input.categoryHint ?? "Other";
-    const severity = rule?.severity ?? (insufficientInfo ? 2 : 3);
     const safetyLevel = rule?.safetyLevel ?? (input.urgencyHint === "urgent" || input.urgencyHint === "critical" ? input.urgencyHint : "medium");
+    const severity = rule?.severity ?? (safetyLevel === "critical" ? 5 : insufficientInfo ? 2 : 3);
     const responsibleTeam = rule?.responsibleTeam ?? "Community admin";
     const isCritical = safetyLevel === "critical" || severity === 5;
 
@@ -100,10 +100,10 @@ export class PlaceholderTriageService implements TriageService {
       duplicateKey: createDuplicateKey(category, input.locationText),
       responsibleTeam,
       recommendedAction: isCritical
-        ? "Mark for immediate human review and advise the reporter to contact appropriate local emergency services if there is immediate danger."
+        ? "Mark for immediate human review, keep the area clearly avoided, and tell the reporter to contact local emergency services or responsible authorities directly if there is immediate danger."
         : "Review the location, confirm the issue, and assign the appropriate local response workflow.",
       citizenReply: isCritical
-        ? "Thanks for reporting. CivicPulse AI is not an emergency service; contact local emergency services if there is immediate danger."
+        ? "CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly."
         : "Thanks for reporting. This will be added to the community dashboard for review.",
       needsHumanReview: insufficientInfo || severity >= 4,
       insufficientInfo,

@@ -1,9 +1,9 @@
 import { getReportById, sampleReports } from "@/lib/sample-data";
-import type { CivicReport, CreateReportInput, ReportStatus, TriageResult } from "@/lib/types";
+import type { ActivityEvent, CivicReport, CreateReportInput, ReportStatus, TriageResult } from "@/lib/types";
 
 export interface ReportsRepository {
   listReports(): Promise<CivicReport[]>;
-  getReport(id: string): Promise<CivicReport | null>;
+  getReportById(id: string): Promise<CivicReport | null>;
   createReport(input: CreateReportInput, triage: TriageResult): Promise<CivicReport>;
   updateStatus(id: string, status: ReportStatus): Promise<CivicReport>;
   supportReport(id: string): Promise<CivicReport>;
@@ -21,12 +21,39 @@ export class LocalReportsRepository implements ReportsRepository {
     return [...this.reports];
   }
 
-  async getReport(id: string) {
+  async getReportById(id: string) {
     return this.reports.find((report) => report.id === id) ?? getReportById(id);
   }
 
   async createReport(input: CreateReportInput, triage: TriageResult) {
     const now = new Date().toISOString();
+    const activity: ActivityEvent[] = [
+      {
+        id: `local-created-${now}`,
+        type: "created",
+        actorRole: "citizen",
+        message: `Report submitted from ${input.locationText}.`,
+        createdAt: now
+      },
+      {
+        id: `local-triaged-${now}`,
+        type: "triaged",
+        actorRole: "system",
+        message: `Prepared local triage as ${triage.category} with severity ${triage.severity}.`,
+        createdAt: now
+      }
+    ];
+
+    if (input.contactReference) {
+      activity.push({
+        id: `local-reference-${now}`,
+        type: "comment",
+        actorRole: "citizen",
+        message: "Optional follow-up reference was provided. The value is not displayed publicly.",
+        createdAt: now
+      });
+    }
+
     const report: CivicReport = {
       id: `local-${crypto.randomUUID()}`,
       title: triage.title,
@@ -43,28 +70,14 @@ export class LocalReportsRepository implements ReportsRepository {
       citizenReply: triage.citizenReply,
       supportCount: 1,
       helpOffers: 0,
+      contactReferenceProvided: Boolean(input.contactReference),
       needsHumanReview: triage.needsHumanReview,
       insufficientInfo: triage.insufficientInfo,
       safetyDisclaimerRequired: triage.safetyDisclaimerRequired,
       triage,
       createdAt: now,
       updatedAt: now,
-      activity: [
-        {
-          id: `local-created-${now}`,
-          type: "created",
-          actorRole: "citizen",
-          message: `Report submitted from ${input.locationText}.`,
-          createdAt: now
-        },
-        {
-          id: `local-triaged-${now}`,
-          type: "triaged",
-          actorRole: "system",
-          message: `Prepared local triage as ${triage.category} with severity ${triage.severity}.`,
-          createdAt: now
-        }
-      ]
+      activity
     };
 
     this.reports = [report, ...this.reports];
@@ -136,6 +149,23 @@ export class LocalReportsRepository implements ReportsRepository {
   }
 }
 
+// TODO: Replace this factory with a Firestore-backed implementation once cloud
+// configuration is available. API routes should keep depending on this interface.
 export function createReportsRepository(): ReportsRepository {
   return new LocalReportsRepository();
+}
+
+declare global {
+  // Keeps local demo writes visible across route-handler bundles in one Node process.
+  // This is intentionally process-local and should not be treated as durable storage.
+  // eslint-disable-next-line no-var
+  var __civicPulseReportsRepository: ReportsRepository | undefined;
+}
+
+export function getReportsRepository(): ReportsRepository {
+  if (!globalThis.__civicPulseReportsRepository) {
+    globalThis.__civicPulseReportsRepository = createReportsRepository();
+  }
+
+  return globalThis.__civicPulseReportsRepository;
 }

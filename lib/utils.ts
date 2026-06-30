@@ -56,3 +56,19 @@ export function getStatusProgress(status: ReportStatus) {
 
   return progress[status];
 }
+
+export function getPriorityExplanation(report: CivicReport) {
+  if (report.safetyLevel === "critical") {
+    return "Marked critical because the report describes a possible immediate public safety hazard and requires human review.";
+  }
+
+  if (report.safetyLevel === "urgent") {
+    return "Marked urgent because the issue may affect road safety, visibility, public movement, or essential services.";
+  }
+
+  if (report.insufficientInfo) {
+    return "Needs human review because the report may not contain enough detail for confident triage.";
+  }
+
+  return "Priority is based on the issue category, likely public impact, support count, and current workflow status.";
+}

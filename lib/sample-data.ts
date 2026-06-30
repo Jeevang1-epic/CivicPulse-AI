@@ -3,8 +3,9 @@ import reportsJson from "@/data/sample_reports.json";
 import type { ActivityEvent, CategoryDefinition, CivicCategory, CivicReport, SafetyLevel, TriageResult } from "@/lib/types";
 import { getReportMetrics } from "@/lib/utils";
 
-type SeedReport = Omit<CivicReport, "activity" | "triage"> & {
+type SeedReport = Omit<CivicReport, "activity" | "triage" | "contactReferenceProvided"> & {
   activity?: ActivityEvent[];
+  contactReferenceProvided?: boolean;
 };
 
 export const civicCategories = categoriesJson as CategoryDefinition[];
@@ -30,6 +31,7 @@ const additionalSeedReports: SeedReport[] = [
     citizenReply: "Thanks for reporting. This has been marked urgent because riders are swerving near a transit stop.",
     supportCount: 31,
     helpOffers: 0,
+    contactReferenceProvided: false,
     needsHumanReview: true,
     insufficientInfo: false,
     safetyDisclaimerRequired: false,
@@ -56,6 +58,7 @@ const additionalSeedReports: SeedReport[] = [
       "Thanks for reporting. This may be dangerous. CivicPulse AI is not an emergency service; please contact local emergency services if there is immediate danger.",
     supportCount: 12,
     helpOffers: 1,
+    contactReferenceProvided: false,
     needsHumanReview: true,
     insufficientInfo: false,
     safetyDisclaimerRequired: true,
@@ -137,6 +140,7 @@ function createActivity(report: SeedReport): ActivityEvent[] {
 function enrichReport(report: SeedReport): CivicReport {
   return {
     ...report,
+    contactReferenceProvided: report.contactReferenceProvided ?? false,
     triage: toTriageResult(report),
     activity: createActivity(report)
   };
@@ -144,14 +148,18 @@ function enrichReport(report: SeedReport): CivicReport {
 
 export const sampleReports: CivicReport[] = [...importedSeedReports, ...additionalSeedReports].map(enrichReport);
 
-export function getAllReports() {
-  return [...sampleReports].sort((a, b) => {
+export function sortReportsByPriority(reports: CivicReport[]) {
+  return [...reports].sort((a, b) => {
     if (b.severity !== a.severity) {
       return b.severity - a.severity;
     }
 
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
+}
+
+export function getAllReports() {
+  return sortReportsByPriority(sampleReports);
 }
 
 export function getReportById(id: string) {
@@ -166,27 +174,35 @@ export function getSampleMetrics() {
   return getReportMetrics(sampleReports);
 }
 
-export function getCategoryCounts() {
+export function getCategoryCountsForReports(reports: CivicReport[]) {
   return civicCategories.map((category) => ({
     category: category.label as CivicCategory,
-    count: sampleReports.filter((report) => report.category === category.label).length,
+    count: reports.filter((report) => report.category === category.label).length,
     team: category.team
   }));
 }
 
-export function getSafetyLevelCounts() {
+export function getCategoryCounts() {
+  return getCategoryCountsForReports(sampleReports);
+}
+
+export function getSafetyLevelCountsForReports(reports: CivicReport[]) {
   const safetyLevels: SafetyLevel[] = ["critical", "urgent", "medium", "low"];
 
   return safetyLevels.map((safetyLevel) => ({
     safetyLevel,
-    count: sampleReports.filter((report) => report.safetyLevel === safetyLevel).length
+    count: reports.filter((report) => report.safetyLevel === safetyLevel).length
   }));
 }
 
-export function getDashboardBrief() {
-  const urgentReports = sampleReports.filter((report) => report.safetyLevel === "urgent" || report.safetyLevel === "critical");
-  const topCategory = getCategoryCounts().sort((a, b) => b.count - a.count)[0];
-  const criticalReport = sampleReports.find((report) => report.safetyLevel === "critical");
+export function getSafetyLevelCounts() {
+  return getSafetyLevelCountsForReports(sampleReports);
+}
+
+export function getDashboardBriefForReports(reports: CivicReport[]) {
+  const urgentReports = reports.filter((report) => report.safetyLevel === "urgent" || report.safetyLevel === "critical");
+  const topCategory = getCategoryCountsForReports(reports).sort((a, b) => b.count - a.count)[0];
+  const criticalReport = reports.find((report) => report.safetyLevel === "critical");
 
   return {
     headline: "Electrical safety, road surface, and night visibility risks need the fastest attention today.",
@@ -196,4 +212,8 @@ export function getDashboardBrief() {
     topCategory: topCategory?.category ?? "Other",
     criticalLocation: criticalReport?.locationText ?? "No critical location in the current seed queue"
   };
+}
+
+export function getDashboardBrief() {
+  return getDashboardBriefForReports(sampleReports);
 }

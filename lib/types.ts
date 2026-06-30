@@ -57,6 +57,7 @@ export type CivicReport = {
   citizenReply: string;
   supportCount: number;
   helpOffers: number;
+  contactReferenceProvided: boolean;
   needsHumanReview: boolean;
   insufficientInfo: boolean;
   safetyDisclaimerRequired: boolean;
@@ -87,6 +88,7 @@ export type CreateReportInput = {
   locationText: string;
   categoryHint?: CivicCategory;
   urgencyHint?: SafetyLevel;
+  contactReference?: string;
 };
 
 export type ReportFilters = {
