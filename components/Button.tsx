@@ -39,10 +39,12 @@ const sizeClasses: Record<ButtonSize, string> = {
 
 export function Button(props: ButtonProps) {
   const { className, size = "md", variant = "primary" } = props;
+  const isDisabled = "disabled" in props && props.disabled;
   const classes = cn(
     "inline-flex items-center justify-center rounded-md font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-civic-500",
     sizeClasses[size],
     variantClasses[variant],
+    isDisabled && "cursor-not-allowed opacity-60",
     className
   );
 

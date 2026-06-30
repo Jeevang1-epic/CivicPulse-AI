@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getReportById, sampleReports } from "@/lib/sample-data";
-import { formatDate, getStatusProgress, safetyLabel } from "@/lib/utils";
+import { getReportsRepository } from "@/lib/repositories/reports-repository";
+import { formatDate, getPriorityExplanation, getStatusProgress, safetyLabel } from "@/lib/utils";
 
 type ReportDetailsPageProps = {
   params: Promise<{
@@ -12,15 +12,11 @@ type ReportDetailsPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return sampleReports.map((report) => ({
-    id: report.id
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function ReportDetailsPage({ params }: ReportDetailsPageProps) {
   const { id } = await params;
-  const report = getReportById(id);
+  const report = await getReportsRepository().getReportById(id);
 
   if (!report) {
     return (
@@ -101,6 +97,29 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
 
           <Card>
             <CardHeader>
+              <CardTitle>Why this priority?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm leading-6 text-slate-600">{getPriorityExplanation(report)}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Severity</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{report.severity}</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Safety</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{safetyLabel(report.safetyLevel)}</p>
+                </div>
+                <div className="rounded-md bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Support</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{report.supportCount}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Recommended action</CardTitle>
             </CardHeader>
             <CardContent>
@@ -110,8 +129,8 @@ export default async function ReportDetailsPage({ params }: ReportDetailsPagePro
               </div>
               {report.safetyDisclaimerRequired ? (
                 <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-900">
-                  CivicPulse AI is not an emergency service. If there is immediate danger, contact local emergency
-                  services.
+                  CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or
+                  responsible authorities directly.
                 </div>
               ) : null}
             </CardContent>

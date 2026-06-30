@@ -1,5 +1,4 @@
-import { Button } from "@/components/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
+import { ReportForm } from "@/components/ReportForm";
 import { civicCategories } from "@/lib/sample-data";
 
 export default function ReportPage() {
@@ -9,8 +8,8 @@ export default function ReportPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-civic-600">Citizen report</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Report a local issue</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          This foundation build keeps the form disabled while the real server-side report flow is prepared. It already
-          shows the fields and safety language the next implementation will activate.
+          Submit a community issue with an approximate location. CivicPulse AI will run deterministic local triage,
+          create a report, and add it to the public board for this demo session.
         </p>
         <div className="mt-6 grid gap-3">
           {["Describe the issue", "Add approximate location", "Server triages severity", "Report appears on board"].map(
@@ -24,73 +23,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <Card className="shadow-soft">
-        <CardHeader>
-          <CardTitle>Issue details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="grid gap-5">
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-slate-700">What did you notice?</span>
-              <textarea
-                className="min-h-36 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400"
-                disabled
-                placeholder="Example: Water leakage on main road is making the road slippery for bikes."
-              />
-            </label>
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-slate-700">Approximate location</span>
-              <input
-                className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400"
-                disabled
-                placeholder="Example: Main road near bus stop"
-              />
-            </label>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Category hint</span>
-                <select
-                  className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-950 outline-none transition"
-                  disabled
-                  defaultValue=""
-                >
-                  <option value="">Let CivicPulse suggest</option>
-                  {civicCategories.map((category) => (
-                    <option key={category.id} value={category.label}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Urgency hint</span>
-                <select
-                  className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-950 outline-none transition"
-                  disabled
-                  defaultValue=""
-                >
-                  <option value="">Not sure</option>
-                  <option>Low</option>
-                  <option>Medium</option>
-                  <option>Urgent</option>
-                </select>
-              </label>
-            </div>
-            <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-              CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services. This demo
-              does not send reports to real authorities.
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button disabled type="button">
-                Submit flow coming next
-              </Button>
-              <Button href="/board" variant="secondary">
-                Inspect demo board
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <ReportForm categories={civicCategories} />
     </section>
   );
 }

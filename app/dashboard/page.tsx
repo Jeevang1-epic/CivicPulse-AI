@@ -3,15 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getCategoryCounts, getDashboardBrief, getPriorityReports, getSafetyLevelCounts, getSampleMetrics } from "@/lib/sample-data";
-import { getStatusProgress, safetyLabel } from "@/lib/utils";
+import { getReportsRepository } from "@/lib/repositories/reports-repository";
+import { getCategoryCountsForReports, getDashboardBriefForReports, getSafetyLevelCountsForReports, sortReportsByPriority } from "@/lib/sample-data";
+import { getReportMetrics, getStatusProgress, safetyLabel } from "@/lib/utils";
 
-export default function DashboardPage() {
-  const metrics = getSampleMetrics();
-  const priorityReports = getPriorityReports(5);
-  const categoryCounts = getCategoryCounts().filter((item) => item.count > 0);
-  const safetyCounts = getSafetyLevelCounts().filter((item) => item.count > 0);
-  const brief = getDashboardBrief();
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const reports = await getReportsRepository().listReports();
+  const metrics = getReportMetrics(reports);
+  const priorityReports = sortReportsByPriority(reports).slice(0, 5);
+  const categoryCounts = getCategoryCountsForReports(reports).filter((item) => item.count > 0);
+  const safetyCounts = getSafetyLevelCountsForReports(reports).filter((item) => item.count > 0);
+  const brief = getDashboardBriefForReports(reports);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

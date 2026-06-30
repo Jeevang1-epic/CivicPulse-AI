@@ -2,7 +2,9 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { ReportCard } from "@/components/ReportCard";
 import { StatCard } from "@/components/StatCard";
-import { getDashboardBrief, getPriorityReports, getSampleMetrics } from "@/lib/sample-data";
+import { getReportsRepository } from "@/lib/repositories/reports-repository";
+import { getDashboardBriefForReports, sortReportsByPriority } from "@/lib/sample-data";
+import { getReportMetrics } from "@/lib/utils";
 
 const workflowSteps = [
   {
@@ -23,10 +25,13 @@ const workflowSteps = [
   }
 ];
 
-export default function HomePage() {
-  const metrics = getSampleMetrics();
-  const priorityReports = getPriorityReports(3);
-  const brief = getDashboardBrief();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const reports = await getReportsRepository().listReports();
+  const metrics = getReportMetrics(reports);
+  const priorityReports = sortReportsByPriority(reports).slice(0, 3);
+  const brief = getDashboardBriefForReports(reports);
 
   return (
     <div>

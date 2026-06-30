@@ -4,12 +4,14 @@ import { SeverityBadge } from "@/components/SeverityBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { CivicReport } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 type ReportCardProps = {
   report: CivicReport;
+  children?: ReactNode;
 };
 
-export function ReportCard({ report }: ReportCardProps) {
+export function ReportCard({ children, report }: ReportCardProps) {
   return (
     <Card className="overflow-hidden transition hover:-translate-y-0.5 hover:border-civic-100 hover:shadow-soft">
       <div className="p-5">
@@ -47,6 +49,7 @@ export function ReportCard({ report }: ReportCardProps) {
           <span className="font-medium text-slate-800">Next action:</span> {report.recommendedAction}
         </div>
       </div>
+      {children}
       <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Group: {report.duplicateKey}</p>
         <Button href={`/reports/${report.id}`} size="sm" variant="secondary">
