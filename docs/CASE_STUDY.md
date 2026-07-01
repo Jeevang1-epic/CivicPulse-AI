@@ -50,21 +50,21 @@ Next.js App Router
        deterministic triage fallback
        community brief service
   -> repository interface:
-       local process-memory implementation today
-       Firestore-ready boundary for future persistence
+       Firestore Admin SDK implementation when configured
+       local process-memory fallback when Firestore env vars are absent or invalid
 ```
 
 ## What Makes It Different
 
 - It treats civic reports as operational records, not just form submissions.
 - It keeps the public board and admin dashboard connected through the same report model.
-- It combines AI triage with strict fallback behavior so the demo remains reliable.
+- It combines AI triage and Firestore persistence with strict fallback behavior so the demo remains reliable.
 - It handles urgent-danger wording safely without pretending to be an emergency system.
 - It uses realistic Indian hyperlocal issue examples rather than generic sample data.
 
 ## Current Limitations
 
-- Data is not durable yet; the current repository is process-local demo storage.
+- Data is durable only when Firestore Admin SDK environment variables are configured; local fallback remains process-local demo storage.
 - Dashboard access is not authenticated.
 - No real government, municipal, utility, or emergency integration exists.
 - Report status changes are demo workflow signals only.
@@ -72,13 +72,13 @@ Next.js App Router
 
 ## Future Improvements
 
-- Firestore-backed repository with durable reports and activity timelines.
 - Admin role access with simple reviewer permissions.
 - Duplicate clustering across location and issue type.
 - Resident notifications for status updates.
 - Abuse prevention, rate limits, and moderation queues.
 - Optional media upload with privacy-safe handling.
 - Analytics for recurring issue hotspots.
+- Firestore indexes, retention policy, and admin audit trails.
 
 ## Portfolio Positioning
 

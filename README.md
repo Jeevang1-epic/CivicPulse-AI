@@ -21,11 +21,13 @@ Local civic issues are often reported through scattered chats, calls, or informa
 - Citizen report submission with category and urgency hints.
 - Server-side Gemini triage when `GEMINI_API_KEY` is configured.
 - Deterministic local fallback triage when Gemini is unavailable.
+- Firestore persistence through Firebase Admin SDK when server-side Firestore environment variables are configured.
+- Local in-memory repository fallback when Firestore is not configured, so the demo still works immediately.
 - Public issue board with filtering, sorting, and support/upvote.
 - Report detail pages with severity, status, location, recommended action, safety flags, and timeline.
 - Demo dashboard with KPI cards, priority queue, status workflow controls, and community brief.
 - Safe urgent-danger disclaimer for critical reports.
-- Process-local demo repository so the project works without cloud database setup.
+- Stable sample report seeding for portfolio demos without fake government integrations.
 
 ## AI Triage Workflow
 
@@ -55,6 +57,7 @@ CivicPulse AI is not an emergency service. For immediate danger, contact local e
 - React
 - Tailwind CSS
 - Gemini API through server-side code only
+- Firebase Admin SDK and Cloud Firestore when configured
 - Local process-memory repository fallback
 - Vercel deployment
 
@@ -68,11 +71,13 @@ Citizen browser
        -> Gemini server-side path when configured
        -> deterministic fallback path always available
   -> Reports repository interface
-       -> local in-memory demo repository today
-       -> Firestore-ready boundary for a future phase
+       -> Firestore Admin SDK repository when configured
+       -> local in-memory fallback when Firestore env vars are missing or invalid
 ```
 
-Secrets stay on the server. No Gemini key is exposed through frontend code or `NEXT_PUBLIC_*` variables.
+Secrets stay on the server. No Gemini key or Firebase Admin credential is exposed through frontend code or `NEXT_PUBLIC_*` variables.
+
+When Firestore is configured and the reports collection is empty, CivicPulse AI seeds the demo reports once with stable IDs such as `demo-1`. When Firestore is not configured, the process-local fallback uses the same seed data and keeps the app usable for local review.
 
 ## Local Setup
 
@@ -99,9 +104,16 @@ Create `.env.local` for local secrets. It is ignored by git.
 ```bash
 GEMINI_API_KEY=your_key_here
 GEMINI_MODEL=
+
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nreplace_with_key_body\n-----END PRIVATE KEY-----\n"
+FIRESTORE_REPORTS_COLLECTION=reports
 ```
 
 `GEMINI_MODEL` is optional. If `GEMINI_API_KEY` is omitted, report triage and the dashboard brief use deterministic fallback behavior.
+
+Firestore variables are optional. If `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, or `FIREBASE_PRIVATE_KEY` is missing or invalid, the app automatically falls back to local demo storage. `FIREBASE_PRIVATE_KEY` may use escaped newline characters (`\n`).
 
 ## Vercel Deployment Notes
 
@@ -115,7 +127,7 @@ Deploy from the project root:
 vercel --prod
 ```
 
-Set `GEMINI_API_KEY` in Vercel Project Settings if live Gemini triage is desired. The app remains usable without it because fallback triage is built in.
+Set `GEMINI_API_KEY` in Vercel Project Settings if live Gemini triage is desired. Set the Firestore Admin SDK variables above if durable report storage is desired. The app remains usable without either cloud integration because deterministic triage and local repository fallback are built in.
 
 ## Demo Flow
 
@@ -135,17 +147,15 @@ The app does not claim that reports are sent to government, police, municipal, u
 
 ## Known Limitations
 
-- Data is stored in a process-local demo repository and can reset between server restarts or serverless instances.
-- Firestore is not implemented yet.
+- Durable data requires the Firestore Admin SDK environment variables; without them, local fallback data can reset between server restarts or serverless instances.
 - Authentication is intentionally not implemented; the dashboard is a demo admin surface.
 - Status updates are demo workflow events, not official action.
 - Gemini is optional and only runs when a server-side key is configured.
 
 ## Future Roadmap
 
-- Firestore-backed repository for durable storage.
 - Role-based access for admin workflows.
 - Duplicate clustering and neighborhood-level analytics.
 - Comment and attachment support with moderation.
 - Status notifications for residents.
-- Production observability, rate limiting, and abuse protection.
+- Firestore indexes, production observability, rate limiting, and abuse protection.

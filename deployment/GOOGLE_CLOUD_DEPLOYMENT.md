@@ -42,19 +42,27 @@ Use Google Cloud Console if CLI is not available:
 - Native mode
 - Region close to app, for example asia-south1 if available
 
-## 5. Store Gemini key in Secret Manager
+## 5. Store server-side secrets in Secret Manager
 
 PowerShell:
 
 ```bash
 $GEMINI_API_KEY="paste_key_here"
 echo $GEMINI_API_KEY | gcloud secrets create GEMINI_API_KEY --data-file=-
+
+$FIREBASE_CLIENT_EMAIL="firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com"
+echo $FIREBASE_CLIENT_EMAIL | gcloud secrets create FIREBASE_CLIENT_EMAIL --data-file=-
+
+$FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nreplace_with_key_body\n-----END PRIVATE KEY-----\n"
+echo $FIREBASE_PRIVATE_KEY | gcloud secrets create FIREBASE_PRIVATE_KEY --data-file=-
 ```
 
 Bash:
 
 ```bash
 echo -n "paste_key_here" | gcloud secrets create GEMINI_API_KEY --data-file=-
+echo -n "firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com" | gcloud secrets create FIREBASE_CLIENT_EMAIL --data-file=-
+printf "%s" "-----BEGIN PRIVATE KEY-----\nreplace_with_key_body\n-----END PRIVATE KEY-----\n" | gcloud secrets create FIREBASE_PRIVATE_KEY --data-file=-
 ```
 
 If secret already exists:
@@ -62,6 +70,8 @@ If secret already exists:
 ```bash
 echo -n "new_key_here" | gcloud secrets versions add GEMINI_API_KEY --data-file=-
 ```
+
+`GEMINI_API_KEY` is optional. Firestore persistence requires the Firebase Admin service account values above plus `FIREBASE_PROJECT_ID`.
 
 ## 6. Deploy to Cloud Run from source
 
@@ -72,8 +82,8 @@ gcloud run deploy $SERVICE `
   --source . `
   --region $REGION `
   --allow-unauthenticated `
-  --set-secrets GEMINI_API_KEY=GEMINI_API_KEY:latest `
-  --set-env-vars NEXT_PUBLIC_FIREBASE_API_KEY="your_value",NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your_value",NEXT_PUBLIC_FIREBASE_PROJECT_ID="$PROJECT_ID",NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your_value",NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your_value",NEXT_PUBLIC_FIREBASE_APP_ID="your_value",NEXT_PUBLIC_DEMO_MODE="true"
+  --set-secrets GEMINI_API_KEY=GEMINI_API_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest `
+  --set-env-vars FIREBASE_PROJECT_ID="$PROJECT_ID",FIRESTORE_REPORTS_COLLECTION="reports"
 ```
 
 Bash:
@@ -83,9 +93,11 @@ gcloud run deploy "$SERVICE" \
   --source . \
   --region "$REGION" \
   --allow-unauthenticated \
-  --set-secrets GEMINI_API_KEY=GEMINI_API_KEY:latest \
-  --set-env-vars NEXT_PUBLIC_FIREBASE_API_KEY="your_value",NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your_value",NEXT_PUBLIC_FIREBASE_PROJECT_ID="$PROJECT_ID",NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your_value",NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your_value",NEXT_PUBLIC_FIREBASE_APP_ID="your_value",NEXT_PUBLIC_DEMO_MODE="true"
+  --set-secrets GEMINI_API_KEY=GEMINI_API_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest \
+  --set-env-vars FIREBASE_PROJECT_ID="$PROJECT_ID",FIRESTORE_REPORTS_COLLECTION="reports"
 ```
+
+Do not pass Firebase Admin values as `NEXT_PUBLIC_*` variables. The app writes to Firestore only from server-side code.
 
 ## 7. Test
 
@@ -105,7 +117,7 @@ Ensure `package.json` has:
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p ${PORT:-3000}",
+    "start": "node server.mjs",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   }

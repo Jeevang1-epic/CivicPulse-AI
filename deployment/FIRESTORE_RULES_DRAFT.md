@@ -1,6 +1,8 @@
 # Firestore Rules Draft
 
-For MVP demo only. Review before production.
+For future client-facing Firebase features only. CivicPulse AI currently writes reports through the server-side Firebase Admin SDK, which is protected by server environment variables and bypasses client security rules.
+
+Do not expose Firebase Admin credentials to the browser. If a later phase adds client Firebase reads or writes, review and tighten rules before production.
 
 ```js
 rules_version = '2';
