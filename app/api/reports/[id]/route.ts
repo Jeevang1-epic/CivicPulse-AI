@@ -20,7 +20,7 @@ export async function GET(_request: Request, context: RouteContext) {
       {
         error: {
           code: "REPORT_NOT_FOUND",
-          message: "That report was not found in the local demo repository."
+          message: "That report was not found."
         }
       },
       { status: 404 }
@@ -34,7 +34,7 @@ export async function GET(_request: Request, context: RouteContext) {
       {
         error: {
           code: "REPORT_NOT_FOUND",
-          message: "That report was not found in the local demo repository."
+          message: "That report was not found."
         }
       },
       { status: 404 }

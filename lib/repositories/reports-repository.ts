@@ -1,4 +1,7 @@
 import { getDashboardSummaryForReports, getFallbackCommunityBrief } from "@/lib/dashboard-intelligence";
+import { createFirestoreReportsRepository } from "@/lib/repositories/firestore-reports-repository";
+import { createReportFromInput } from "@/lib/repositories/report-factory";
+import { ReportNotFoundError } from "@/lib/repositories/repository-errors";
 import { civicCategories, getReportById, sampleReports } from "@/lib/sample-data";
 import type {
   ActivityEvent,
@@ -30,7 +33,7 @@ export class LocalReportsRepository implements ReportsRepository {
   private reports: CivicReport[];
 
   constructor(seedReports: CivicReport[] = sampleReports) {
-    // Seed once per process; Firestore will replace this local store in the cloud-backed phase.
+    // Seed once per process. This fallback keeps demos working when Firestore env vars are absent or invalid.
     this.reports = [...seedReports];
   }
 
@@ -43,60 +46,7 @@ export class LocalReportsRepository implements ReportsRepository {
   }
 
   async createReport(input: CreateReportInput, triage: TriageResult) {
-    const now = new Date().toISOString();
-    const activity: ActivityEvent[] = [
-      {
-        id: `local-created-${now}`,
-        type: "created",
-        actorRole: "citizen",
-        message: `Report submitted from ${input.locationText}.`,
-        createdAt: now
-      },
-      {
-        id: `local-triaged-${now}`,
-        type: "triaged",
-        actorRole: "system",
-        message: `Prepared ${triage.triageMode.replaceAll("_", " ")} triage as ${triage.category} with severity ${triage.severity}.`,
-        createdAt: now
-      }
-    ];
-
-    if (input.contactReference) {
-      activity.push({
-        id: `local-reference-${now}`,
-        type: "comment",
-        actorRole: "citizen",
-        message: "Optional follow-up reference was provided. The value is not displayed publicly.",
-        createdAt: now
-      });
-    }
-
-    const report: CivicReport = {
-      id: `local-${crypto.randomUUID()}`,
-      title: triage.title,
-      description: input.description,
-      cleanedSummary: triage.cleanedSummary,
-      category: triage.category,
-      severity: triage.severity,
-      safetyLevel: triage.safetyLevel,
-      locationText: input.locationText,
-      status: "open",
-      duplicateKey: triage.duplicateKey,
-      responsibleTeam: triage.responsibleTeam,
-      recommendedAction: triage.recommendedAction,
-      citizenReply: triage.citizenReply,
-      supportCount: 1,
-      helpOffers: 0,
-      triageMode: triage.triageMode,
-      contactReferenceProvided: Boolean(input.contactReference),
-      needsHumanReview: triage.needsHumanReview,
-      insufficientInfo: triage.insufficientInfo,
-      safetyDisclaimerRequired: triage.safetyDisclaimerRequired,
-      triage,
-      createdAt: now,
-      updatedAt: now,
-      activity
-    };
+    const report = createReportFromInput(input, triage, "local");
 
     this.reports = [report, ...this.reports];
     return report;
@@ -214,7 +164,7 @@ export class LocalReportsRepository implements ReportsRepository {
     const reportIndex = this.reports.findIndex((report) => report.id === id);
 
     if (reportIndex === -1) {
-      throw new Error("Report not found");
+      throw new ReportNotFoundError();
     }
 
     const updatedReport = updater(this.reports[reportIndex]);
@@ -223,10 +173,88 @@ export class LocalReportsRepository implements ReportsRepository {
   }
 }
 
-// TODO: Replace this factory with a Firestore-backed implementation once cloud
-// configuration is available. API routes should keep depending on this interface.
+class ResilientReportsRepository implements ReportsRepository {
+  constructor(private readonly primary: ReportsRepository, private readonly fallback: ReportsRepository) {}
+
+  async listReports() {
+    return this.tryPrimary(() => this.primary.listReports(), () => this.fallback.listReports(), "list reports");
+  }
+
+  async getReportById(id: string) {
+    return this.tryPrimary(() => this.primary.getReportById(id), () => this.fallback.getReportById(id), "get report");
+  }
+
+  async createReport(input: CreateReportInput, triage: TriageResult) {
+    return this.tryPrimary(() => this.primary.createReport(input, triage), () => this.fallback.createReport(input, triage), "create report");
+  }
+
+  async updateReportStatus(id: string, status: ReportStatus) {
+    return this.tryPrimary(
+      () => this.primary.updateReportStatus(id, status),
+      () => this.fallback.updateReportStatus(id, status),
+      "update report status"
+    );
+  }
+
+  async updateStatus(id: string, status: ReportStatus) {
+    return this.updateReportStatus(id, status);
+  }
+
+  async assignResponsibleTeam(id: string, team: string) {
+    return this.tryPrimary(
+      () => this.primary.assignResponsibleTeam(id, team),
+      () => this.fallback.assignResponsibleTeam(id, team),
+      "assign responsible team"
+    );
+  }
+
+  async addActivityEvent(id: string, event: ActivityEventInput) {
+    return this.tryPrimary(
+      () => this.primary.addActivityEvent(id, event),
+      () => this.fallback.addActivityEvent(id, event),
+      "add activity event"
+    );
+  }
+
+  async getDashboardSummary() {
+    return this.tryPrimary(() => this.primary.getDashboardSummary(), () => this.fallback.getDashboardSummary(), "get dashboard summary");
+  }
+
+  async getCommunityInsights() {
+    return this.tryPrimary(() => this.primary.getCommunityInsights(), () => this.fallback.getCommunityInsights(), "get community insights");
+  }
+
+  async supportReport(id: string) {
+    return this.tryPrimary(() => this.primary.supportReport(id), () => this.fallback.supportReport(id), "support report");
+  }
+
+  async offerHelp(id: string) {
+    return this.tryPrimary(() => this.primary.offerHelp(id), () => this.fallback.offerHelp(id), "offer help");
+  }
+
+  private async tryPrimary<T>(primaryOperation: () => Promise<T>, fallbackOperation: () => Promise<T>, operationName: string) {
+    try {
+      return await primaryOperation();
+    } catch (error) {
+      if (error instanceof ReportNotFoundError) {
+        throw error;
+      }
+
+      console.warn(`[CivicPulse AI] Firestore ${operationName} failed; using local fallback when possible.`);
+      return fallbackOperation();
+    }
+  }
+}
+
 export function createReportsRepository(): ReportsRepository {
-  return new LocalReportsRepository();
+  const localRepository = new LocalReportsRepository();
+  const firestoreRepository = createFirestoreReportsRepository();
+
+  if (!firestoreRepository) {
+    return localRepository;
+  }
+
+  return new ResilientReportsRepository(firestoreRepository, localRepository);
 }
 
 declare global {
