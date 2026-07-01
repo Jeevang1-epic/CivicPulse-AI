@@ -1,31 +1,80 @@
 # CivicPulse AI
 
-**Track:** Community Hero - Hyperlocal Problem Solver  
-**Positioning:** A hyperlocal civic issue-response platform that turns scattered citizen reports into prioritized, trackable community action.
+Live demo: https://civicpulse-ai-two.vercel.app
 
-CivicPulse AI is being built as a production-looking Next.js application deployable on Google Cloud Run. Citizens will report local problems, server-side AI triage will convert reports into structured category/severity/action data, and public/admin views will help communities track issues transparently.
+Track: Community Hero - Hyperlocal Problem Solver
 
-## Current build status
+CivicPulse AI turns scattered neighborhood issue reports into a structured civic action queue with AI-assisted triage, public transparency, and a demo operations dashboard.
 
-This repository now contains the controlled bootstrap of the app in the same root folder as the hackathon context pack. It includes:
+## Project Overview
 
-- Next.js App Router with TypeScript
-- Tailwind CSS styling
-- Mobile-first landing, report submission, board, dashboard, and report detail routes
-- Shared civic report types
-- App-facing demo data for streetlight, garbage, water leakage, road damage, and electrical safety reports
-- Seed data loader that preserves the original `data/sample_reports.json` context file
-- Process-local demo repository with report creation, detail loading, board updates, and support/upvote
-- Server-only Gemini AI triage with structured JSON validation
-- Deterministic fallback triage that structures category, severity, safety level, action guidance, and review flags
-- Dashboard workflow controls for open, in review, assigned, and resolved reports
-- Server-side community brief API with Gemini support and deterministic fallback
-- Cloud Run-friendly `npm start` script that reads `PORT`
+CivicPulse AI is a mobile-first civic reporting platform for hyperlocal problems such as broken streetlights, garbage piles, water leakage, potholes, and public safety hazards. Citizens can submit a report in plain language, the server triages it into structured severity/category/action data, and the public board plus dashboard help reviewers track what needs attention.
 
-Firestore is intentionally not implemented yet. Gemini is optional and server-side only; when `GEMINI_API_KEY` is missing or Gemini fails, report submission automatically uses the deterministic local fallback.
-The dashboard community brief follows the same pattern and falls back safely without cloud configuration.
+The app is intentionally honest about its scope. It is a community coordination demo, not an official government system, not an emergency service, and not a replacement for responsible local reporting.
 
-## Local setup
+## Problem Statement
+
+Local civic issues are often reported through scattered chats, calls, or informal messages. This makes it hard to identify duplicates, prioritize urgent problems, communicate status, and give residents a transparent view of what is being tracked.
+
+## Key Features
+
+- Citizen report submission with category and urgency hints.
+- Server-side Gemini triage when `GEMINI_API_KEY` is configured.
+- Deterministic local fallback triage when Gemini is unavailable.
+- Public issue board with filtering, sorting, and support/upvote.
+- Report detail pages with severity, status, location, recommended action, safety flags, and timeline.
+- Demo dashboard with KPI cards, priority queue, status workflow controls, and community brief.
+- Safe urgent-danger disclaimer for critical reports.
+- Process-local demo repository so the project works without cloud database setup.
+
+## AI Triage Workflow
+
+1. The citizen submits issue details and approximate location.
+2. Server-side code validates and normalizes the input.
+3. If `GEMINI_API_KEY` is available, Gemini returns structured JSON for title, summary, category, severity, safety level, duplicate key, recommended action, and review flags.
+4. If Gemini is missing, slow, invalid, or fails, the deterministic fallback service produces the same structured shape.
+5. Critical danger signals require human review and show the safety disclaimer:
+
+```txt
+CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.
+```
+
+## Dashboard Workflow
+
+- Review total, open, in-review, assigned, resolved, urgent, and critical report counts.
+- Filter reports by status, category, severity, and search text.
+- Prioritize reports by severity and recency.
+- Update demo workflow status from open to in review, assigned, or resolved.
+- Inspect recommended action, responsible team, duplicate key, triage mode, review flags, and recent timeline events.
+- Generate a community brief through server-side Gemini or deterministic fallback.
+
+## Tech Stack
+
+- Next.js App Router
+- TypeScript
+- React
+- Tailwind CSS
+- Gemini API through server-side code only
+- Local process-memory repository fallback
+- Vercel deployment
+
+## Architecture Overview
+
+```txt
+Citizen browser
+  -> Next.js pages and client components
+  -> API routes for reports, support, status, dashboard summary, and community brief
+  -> Triage service
+       -> Gemini server-side path when configured
+       -> deterministic fallback path always available
+  -> Reports repository interface
+       -> local in-memory demo repository today
+       -> Firestore-ready boundary for a future phase
+```
+
+Secrets stay on the server. No Gemini key is exposed through frontend code or `NEXT_PUBLIC_*` variables.
+
+## Local Setup
 
 ```bash
 npm install
@@ -34,72 +83,69 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-Run without Gemini by leaving `.env.local` absent or `GEMINI_API_KEY` blank. New reports should show `Fallback missing key` in the triage engine label. To test live Gemini mode locally, create `.env.local` with:
+Useful scripts:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm start
+```
+
+## Environment Variables
+
+Create `.env.local` for local secrets. It is ignored by git.
 
 ```bash
 GEMINI_API_KEY=your_key_here
 GEMINI_MODEL=
 ```
 
-`GEMINI_MODEL` is optional; when blank, the server uses a fast default Gemini model. Never prefix Gemini secrets with `NEXT_PUBLIC_`.
-`.env.local` is ignored by git and must not be committed.
+`GEMINI_MODEL` is optional. If `GEMINI_API_KEY` is omitted, report triage and the dashboard brief use deterministic fallback behavior.
 
-## Validation
+## Vercel Deployment Notes
 
-```bash
-npm run lint
-npm run typecheck
-npm run build
-```
+The production app is deployed at:
 
-Every implementation step should finish by running these commands when the scripts exist.
+https://civicpulse-ai-two.vercel.app
 
-## Routes
-
-- `/` - landing page and product explanation
-- `/report` - citizen report submission flow backed by the local demo repository
-- `/board` - public issue board using seed data plus submissions from the current server process
-- `/dashboard` - demo operations dashboard with live metrics, filters, status updates, priority queue, and community brief
-- `/reports/demo-1` - streetlight report details
-- `/reports/demo-5` - critical safety report details
-- `/reports/not-real` - polished missing-report fallback
-
-## Demo flow
-
-1. Open `/` and use the calls to action to reach the reporting flow, public board, and dashboard.
-2. Submit an issue on `/report`; the server triages it with Gemini when configured or deterministic fallback when not.
-3. Confirm the new report appears on `/board`, open its detail page, and use support/upvote to show community signal.
-4. Open `/dashboard` to review KPIs, priority queue, status workflow controls, and the community brief.
-
-## Current limitations
-
-- Local demo storage is process-memory only until Firestore is configured.
-- Dashboard access is a demo admin role surface, not production authentication.
-- CivicPulse AI does not submit reports to real authorities or official systems.
-
-## Safety and integrity
-
-- This demo does not send reports to real authorities.
-- CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.
-- No Gemini API keys or other secrets should be exposed in frontend code.
-- No fake government or official integration claims should be made.
-
-## Context pack folders
-
-The original hackathon context remains in place:
-
-```txt
-docs/         strategy, PRD, architecture, AI design, validation
-codex/        build prompts and acceptance notes
-deployment/   env template, Cloud Run commands, Firestore rules draft
-data/         sample reports and categories
-judges/       pitch, demo script, differentiators
-```
-
-## Google Cloud Run
-
-The app is intended to be deployed from this root folder. Later phases should complete environment configuration and deployment documentation before final submission.
+Deploy from the project root:
 
 ```bash
-gcloud run deploy civicpulse-ai --source . --region asia-south1 --allow-unauthenticated
+vercel --prod
 ```
+
+Set `GEMINI_API_KEY` in Vercel Project Settings if live Gemini triage is desired. The app remains usable without it because fallback triage is built in.
+
+## Demo Flow
+
+1. Open the live demo.
+2. Submit a report from `/report`.
+3. Confirm it appears on `/board`.
+4. Open the generated report detail page.
+5. Use support/upvote on the board.
+6. Open `/dashboard` and review KPIs, priority queue, status controls, and the community brief.
+7. Open `/reports/not-real` to confirm the polished not-found state.
+
+## Safety Disclaimer
+
+CivicPulse AI is not an emergency service. For immediate danger, contact local emergency services or responsible authorities directly.
+
+The app does not claim that reports are sent to government, police, municipal, utility, or emergency systems.
+
+## Known Limitations
+
+- Data is stored in a process-local demo repository and can reset between server restarts or serverless instances.
+- Firestore is not implemented yet.
+- Authentication is intentionally not implemented; the dashboard is a demo admin surface.
+- Status updates are demo workflow events, not official action.
+- Gemini is optional and only runs when a server-side key is configured.
+
+## Future Roadmap
+
+- Firestore-backed repository for durable storage.
+- Role-based access for admin workflows.
+- Duplicate clustering and neighborhood-level analytics.
+- Comment and attachment support with moderation.
+- Status notifications for residents.
+- Production observability, rate limiting, and abuse protection.
