@@ -21,3 +21,5 @@ FIRESTORE_REPORTS_COLLECTION=reports
 - `FIREBASE_PRIVATE_KEY` may use escaped newlines (`\n`); the server normalizes them before initializing Firebase Admin.
 - If the Firestore variables are missing or invalid, CivicPulse AI automatically uses the local demo repository.
 - For Cloud Run or Vercel, store secrets in the platform environment manager instead of committing `.env.local`.
+- In Vercel, redeploy the project after adding or changing environment variables.
+- `GET /api/system/storage-status` confirms the selected storage mode without exposing secrets.

@@ -1,5 +1,5 @@
 import { getDashboardSummaryForReports, getFallbackCommunityBrief } from "@/lib/dashboard-intelligence";
-import { createFirestoreReportsRepository } from "@/lib/repositories/firestore-reports-repository";
+import { createFirestoreReportsRepository, getFirestoreEnvironmentStatus } from "@/lib/repositories/firestore-reports-repository";
 import { createReportFromInput } from "@/lib/repositories/report-factory";
 import { ReportNotFoundError } from "@/lib/repositories/repository-errors";
 import { civicCategories, getReportById, sampleReports } from "@/lib/sample-data";
@@ -28,6 +28,13 @@ export interface ReportsRepository {
   supportReport(id: string): Promise<CivicReport>;
   offerHelp(id: string): Promise<CivicReport>;
 }
+
+export type ReportsStorageStatus = {
+  storageMode: "firestore" | "local_fallback";
+  firestoreConfigured: boolean;
+  collection: string;
+  warnings: string[];
+};
 
 export class LocalReportsRepository implements ReportsRepository {
   private reports: CivicReport[];
@@ -255,6 +262,37 @@ export function createReportsRepository(): ReportsRepository {
   }
 
   return new ResilientReportsRepository(firestoreRepository, localRepository);
+}
+
+export function getReportsStorageStatus(): ReportsStorageStatus {
+  const environmentStatus = getFirestoreEnvironmentStatus();
+
+  if (!environmentStatus.configured) {
+    return {
+      storageMode: "local_fallback",
+      firestoreConfigured: false,
+      collection: environmentStatus.collectionName,
+      warnings: environmentStatus.warnings
+    };
+  }
+
+  const firestoreRepository = createFirestoreReportsRepository();
+
+  if (!firestoreRepository) {
+    return {
+      storageMode: "local_fallback",
+      firestoreConfigured: true,
+      collection: environmentStatus.collectionName,
+      warnings: ["Firestore Admin initialization failed; using local fallback."]
+    };
+  }
+
+  return {
+    storageMode: "firestore",
+    firestoreConfigured: true,
+    collection: environmentStatus.collectionName,
+    warnings: []
+  };
 }
 
 declare global {

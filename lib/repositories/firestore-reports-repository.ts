@@ -31,6 +31,12 @@ type FirestoreConfig = {
   collectionName: string;
 };
 
+export type FirestoreEnvironmentStatus = {
+  configured: boolean;
+  collectionName: string;
+  warnings: string[];
+};
+
 type FirestoreLocation = {
   text: string;
   lat?: number;
@@ -43,7 +49,44 @@ const firebaseAppName = "civicpulse-ai-admin";
 let firestoreDb: Firestore | null = null;
 
 function normalizePrivateKey(value: string) {
-  return value.replace(/\\n/g, "\n").trim();
+  const trimmedValue = value.trim();
+  const unquotedValue =
+    (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+    (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
+      ? trimmedValue.slice(1, -1)
+      : trimmedValue;
+
+  return unquotedValue.replace(/\\n/g, "\n").trim();
+}
+
+export function getFirestoreEnvironmentStatus(): FirestoreEnvironmentStatus {
+  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
+  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY?.trim();
+  const collectionName = process.env.FIRESTORE_REPORTS_COLLECTION?.trim() || defaultReportsCollection;
+  const warnings: string[] = [];
+
+  if (!projectId) {
+    warnings.push("FIREBASE_PROJECT_ID is missing.");
+  }
+
+  if (!clientEmail) {
+    warnings.push("FIREBASE_CLIENT_EMAIL is missing.");
+  } else if (!clientEmail.includes("@")) {
+    warnings.push("FIREBASE_CLIENT_EMAIL format is invalid.");
+  }
+
+  if (!rawPrivateKey) {
+    warnings.push("FIREBASE_PRIVATE_KEY is missing.");
+  } else if (!normalizePrivateKey(rawPrivateKey).includes("BEGIN PRIVATE KEY")) {
+    warnings.push("FIREBASE_PRIVATE_KEY format is invalid.");
+  }
+
+  return {
+    configured: warnings.length === 0,
+    collectionName,
+    warnings
+  };
 }
 
 export function getFirestoreConfigFromEnv(): FirestoreConfig | null {
@@ -51,17 +94,13 @@ export function getFirestoreConfigFromEnv(): FirestoreConfig | null {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
   const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY?.trim();
   const collectionName = process.env.FIRESTORE_REPORTS_COLLECTION?.trim() || defaultReportsCollection;
+  const environmentStatus = getFirestoreEnvironmentStatus();
 
-  if (!projectId || !clientEmail || !rawPrivateKey) {
+  if (!environmentStatus.configured || !projectId || !clientEmail || !rawPrivateKey) {
     return null;
   }
 
   const privateKey = normalizePrivateKey(rawPrivateKey);
-
-  if (!clientEmail.includes("@") || !privateKey.includes("BEGIN PRIVATE KEY")) {
-    console.warn("[CivicPulse AI] Firestore env vars are present but invalid; using local fallback.");
-    return null;
-  }
 
   return {
     projectId,
@@ -318,7 +357,7 @@ function toFirestoreLocation(report: CivicReport): FirestoreLocation {
 }
 
 function toFirestoreReport(report: CivicReport) {
-  return {
+  return withoutUndefined({
     id: report.id,
     title: report.title,
     description: report.description,
@@ -348,7 +387,23 @@ function toFirestoreReport(report: CivicReport) {
     insufficientInfo: report.insufficientInfo,
     safetyDisclaimerRequired: report.safetyDisclaimerRequired,
     activity: report.activity
-  };
+  }) as DocumentData;
+}
+
+function withoutUndefined(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(withoutUndefined);
+  }
+
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).flatMap(([key, childValue]) =>
+        childValue === undefined ? [] : [[key, withoutUndefined(childValue)]]
+      )
+    );
+  }
+
+  return value;
 }
 
 function sortNewestFirst(reports: CivicReport[]) {

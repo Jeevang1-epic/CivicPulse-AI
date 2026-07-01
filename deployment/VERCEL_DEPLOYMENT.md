@@ -40,6 +40,7 @@ Notes:
 - Do not create `NEXT_PUBLIC_GEMINI_API_KEY`.
 - Do not create `NEXT_PUBLIC_FIREBASE_*` variables for server writes. The app uses Firebase Admin SDK only on the server.
 - Do not commit `.env.local`.
+- After adding or changing Vercel environment variables, redeploy the project for the new values to apply.
 
 CLI setup option:
 
@@ -79,6 +80,7 @@ After deployment, verify:
 - `/reports/not-real` shows the polished not-found state.
 - `/api/dashboard/summary` returns JSON.
 - `/api/dashboard/community-brief` returns JSON with either Gemini or fallback mode.
+- `/api/system/storage-status` returns `storageMode`, `firestoreConfigured`, `collection`, and safe warnings only.
 
 ## Persistence Behavior
 

@@ -1,6 +1,6 @@
 import { Button } from "@/components/Button";
 import { DashboardCommandCenter } from "@/components/DashboardCommandCenter";
-import { getReportsRepository } from "@/lib/repositories/reports-repository";
+import { getReportsRepository, getReportsStorageStatus } from "@/lib/repositories/reports-repository";
 import { civicCategories } from "@/lib/sample-data";
 import { createCommunityBriefService } from "@/lib/services/community-brief-service";
 
@@ -10,7 +10,9 @@ export const runtime = "nodejs";
 
 export default async function DashboardPage() {
   const reports = await getReportsRepository().listReports();
+  const storageStatus = getReportsStorageStatus();
   const brief = await createCommunityBriefService().createBrief(reports);
+  const storageLabel = storageStatus.storageMode === "firestore" ? "Firestore" : "Local fallback";
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -23,7 +25,10 @@ export default async function DashboardPage() {
             a community brief without claiming official integrations.
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 shadow-sm">
+            Storage: {storageLabel}
+          </span>
           <Button href="/report" variant="secondary">
             Submit report
           </Button>

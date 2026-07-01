@@ -66,7 +66,7 @@ CivicPulse AI is not an emergency service. For immediate danger, contact local e
 ```txt
 Citizen browser
   -> Next.js pages and client components
-  -> API routes for reports, support, status, dashboard summary, and community brief
+  -> API routes for reports, support, status, dashboard summary, community brief, and storage diagnostics
   -> Triage service
        -> Gemini server-side path when configured
        -> deterministic fallback path always available
@@ -78,6 +78,8 @@ Citizen browser
 Secrets stay on the server. No Gemini key or Firebase Admin credential is exposed through frontend code or `NEXT_PUBLIC_*` variables.
 
 When Firestore is configured and the reports collection is empty, CivicPulse AI seeds the demo reports once with stable IDs such as `demo-1`. When Firestore is not configured, the process-local fallback uses the same seed data and keeps the app usable for local review.
+
+The safe diagnostics endpoint `GET /api/system/storage-status` reports only `storageMode`, `firestoreConfigured`, `collection`, and non-secret warnings. It never returns Firebase emails, keys, private key fragments, or raw environment values.
 
 ## Local Setup
 
@@ -129,6 +131,8 @@ vercel --prod
 
 Set `GEMINI_API_KEY` in Vercel Project Settings if live Gemini triage is desired. Set the Firestore Admin SDK variables above if durable report storage is desired. The app remains usable without either cloud integration because deterministic triage and local repository fallback are built in.
 
+After adding or changing Vercel environment variables, redeploy the project for the new values to apply.
+
 ## Demo Flow
 
 1. Open the live demo.
@@ -137,7 +141,8 @@ Set `GEMINI_API_KEY` in Vercel Project Settings if live Gemini triage is desired
 4. Open the generated report detail page.
 5. Use support/upvote on the board.
 6. Open `/dashboard` and review KPIs, priority queue, status controls, and the community brief.
-7. Open `/reports/not-real` to confirm the polished not-found state.
+7. Open `/api/system/storage-status` to confirm whether storage is Firestore or local fallback.
+8. Open `/reports/not-real` to confirm the polished not-found state.
 
 ## Safety Disclaimer
 
