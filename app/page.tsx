@@ -13,7 +13,7 @@ const workflowSteps = [
   },
   {
     title: "Structure",
-    description: "The upcoming AI triage layer turns messy text into category, severity, duplicate key, and action data."
+    description: "Server-side triage turns messy text into category, severity, duplicate key, and action data."
   },
   {
     title: "Coordinate",
